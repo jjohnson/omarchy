@@ -140,6 +140,8 @@ package_defaults = [
   ("default/systemd/user/omarchy-migrate-notify.service", "/usr/lib/systemd/user/omarchy-migrate-notify.service", "systemd/user/omarchy-migrate-notify.service"),
   ("default/systemd/user/omarchy-tailscale-receive.service", "/usr/lib/systemd/user/omarchy-tailscale-receive.service", "systemd/user/omarchy-tailscale-receive.service"),
   ("default/systemd/user/omarchy-fcitx5.service", "/usr/lib/systemd/user/omarchy-fcitx5.service", "systemd/user/omarchy-fcitx5.service"),
+  ("default/systemd/user/omarchy-spice-clipboard-wayland-to-x11.service", "/usr/lib/systemd/user/omarchy-spice-clipboard-wayland-to-x11.service", "systemd/user/omarchy-spice-clipboard-wayland-to-x11.service"),
+  ("default/systemd/user/omarchy-spice-clipboard-x11-to-wayland.service", "/usr/lib/systemd/user/omarchy-spice-clipboard-x11-to-wayland.service", "systemd/user/omarchy-spice-clipboard-x11-to-wayland.service"),
   ("default/systemd/zram-generator.conf.d/90-omarchy.conf", "/usr/lib/systemd/zram-generator.conf.d/90-omarchy.conf", "systemd/zram-generator.conf.d/90-omarchy.conf"),
   ("default/fonts/omarchy/omarchy.ttf", "/usr/share/fonts/omarchy/omarchy.ttf", "omarchy.ttf"),
   ("default/snapper/root", "/etc/snapper/config-templates/omarchy", "snapper/root"),

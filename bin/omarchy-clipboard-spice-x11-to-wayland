@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# omarchy:summary=Mirror SPICE's X11 clipboard to Wayland
+# omarchy:group=clipboard
+# omarchy:hidden=true
+
+set -o pipefail
+
+# A host clipboard update makes spice-vdagent own the X11 selection. Import it
+# into Wayland, where native Omarchy applications can see it. The reverse
+# bridge writes the same value back to X11, so remember the last imported hash
+# to stop that round trip from becoming a feedback loop.
+last_hash=""
+while clipnotify -s clipboard; do
+  current_hash=$(xclip -selection clipboard -o 2>/dev/null | sha256sum) || continue
+  [[ $current_hash == "$last_hash" ]] && continue
+
+  xclip -selection clipboard -o 2>/dev/null | wl-copy -n || continue
+  last_hash="$current_hash"
+done

@@ -14,3 +14,12 @@ systemctl enable NetworkManager.service
 systemctl mask NetworkManager-wait-online.service
 systemctl enable power-profiles-daemon.service
 systemctl enable sddm.service
+
+# The package's static socket normally starts from a udev event when the SPICE
+# Virtio port appears. During a fresh install the port can predate the package,
+# leaving the socket and clipboard daemon inactive after reboot. Persist the
+# socket dependency only for guests that actually expose the SPICE channel.
+spice_port="${OMARCHY_SPICE_PORT:-/dev/virtio-ports/com.redhat.spice.0}"
+if [[ -e $spice_port ]]; then
+  systemctl add-wants sockets.target spice-vdagentd.socket
+fi

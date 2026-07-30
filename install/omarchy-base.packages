@@ -16,6 +16,7 @@ btop
 chromium
 clang
 cliamp
+clipnotify
 cups
 cups-browsed
 cups-filters
@@ -137,6 +138,7 @@ wireplumber
 wl-clipboard
 wtype
 woff2-font-awesome
+xclip
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
 xdg-terminal-exec
