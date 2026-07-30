@@ -235,7 +235,7 @@ hyprland-preview-share-picker    0.2.1-1
 omacut                           0.2.0-1
 omawrite                         0.4.0-1
 tensaku                          0.26.6-1
-tobi-try                         1.8.1-2
+tobi-try                         1.9.3-1
 ```
 
 `file` and `readelf` identified the compiled payloads as ELF64 little-endian

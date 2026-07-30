@@ -32,7 +32,11 @@ commits:
 - `74775e1` (`Add aarch64 support for native utilities`) declares AArch64 for
   `asdcontrol`, `hyprland-preview-share-picker`, and `tensaku` after all three
   completed clean native builds.
+- `752d420` (`Update tobi-try to 1.9.3`) pins the current upstream 1.9.3
+  payload after the package transaction exposed an older recipe.
+- `23d81b0` (`Conflict share picker with git variant`) allows the stable
+  package to replace the legacy `-git` package transactionally.
 
 The current package-repository branch tip is
-`74775e1e3f8a0165b7d5e5e5074c80a4fe961462` and is pushed to the personal
+`23d81b0c5d2af7ba9e29f39c85b5b90e858b2d9f` and is pushed to the personal
 origin.

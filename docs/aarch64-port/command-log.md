@@ -1094,5 +1094,91 @@ and dry pacman transactions were inspected. The first batch requires only
 `yt-dlp` and its native repository dependencies; the second batch already has
 all runtime dependencies on the host.
 
-No Phase 3 package has yet been installed system-wide. Building changed only
-Docker state and ignored package-output directories.
+At that checkpoint, no Phase 3 package had been installed system-wide.
+Building changed only Docker state and ignored package-output directories.
+
+## 2026-07-30: Phase 3 staged package installation
+
+Installed the eight missing unchanged packages from signed Arch Linux ARM
+repositories:
+
+```bash
+pkexec pacman -S --noconfirm --needed \
+  bluez-utils dua-cli foot gpu-screen-recorder lua51 moonlight-qt \
+  mpv-mpris yt-dlp
+```
+
+The transaction installed the eight targets and seven dependencies. Every
+target passed `pacman -Qk`; desktop, network, graphics, unit, and protected
+hash checks passed immediately afterward.
+
+The first seven-package local transaction stopped without changing the host
+because of legacy file collisions. Inspection found:
+
+```text
+/usr/bin/asdcontrol                unowned, version 0.4
+/etc/sudoers.d/asdcontrol          unowned
+/usr/bin/try                       unowned, version 1.9.3
+/usr/bin/lib/{tui.rb,fuzzy.rb}     unowned
+hyprland-preview-share-picker-git  installed, no reverse dependencies
+```
+
+The existing unowned `try` payload matched current upstream commit
+`13869f447d88dfe21954620e11655b76713bb8e1`, while the package recipe was
+1.8.1. Updated and rebuilt `tobi-try 1.9.3-1`; all three packaged files are
+byte-for-byte identical to the working unowned files. Added an explicit
+`hyprland-preview-share-picker-git` conflict to the stable share-picker
+package and rebuilt it. Both clean ARM64 builds passed and were preserved in:
+
+```text
+build-output/phase3-native-batch3-20260730-0311/
+```
+
+The fixes were committed and pushed separately:
+
+```text
+752d420  Update tobi-try to 1.9.3
+23d81b0  Conflict share picker with git variant
+```
+
+Created a recoverable archive of every collided path before moving the
+unowned files:
+
+```text
+/home/jj/.local/state/omarchy/phase3-collision-backup-20260730-031300/legacy-collision-files.tar
+SHA-256: ed13dd2d873bbe963896906b313b4e48a447f3739d82a6cb554e9f3b2275fd7c
+```
+
+The unowned files remain under the adjacent `moved-unowned/` directory.
+Removed only `hyprland-preview-share-picker-git`, which had no reverse
+dependencies, then installed:
+
+```text
+asdcontrol                       1:0.6.0-1
+cliamp                           1.62.0-1
+hyprland-preview-share-picker    0.2.1-1
+omacut                           0.2.0-1
+omawrite                         0.4.0-1
+tensaku                          0.26.6-1
+tobi-try                         1.9.3-1
+```
+
+Every package passed `pacman -Qk`; `asdcontrol` was checked through `pkexec`
+because its sudoers directory is intentionally not traversable by the normal
+user. All collided live paths are now owned by their intended packages.
+
+The complete base manifest now resolves 138 of 143 names. The only missing
+literal names are:
+
+```text
+dotnet-runtime
+obs-studio
+obsidian
+pinta
+qemu-user-static-binfmt
+```
+
+Quickshell IPC, empty Hyprland errors, NetworkManager full connectivity,
+direct VirGL, zero failed units, and all protected hashes passed after the
+transactions. Tensaku's optional wiring command and the Quattro migration and
+finalization commands were not run.
