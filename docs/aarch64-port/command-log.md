@@ -100,3 +100,52 @@ systemctl --user --failed --no-legend
 Results are summarized in
 [`baseline-2026-07-29.md`](baseline-2026-07-29.md). No package database,
 package, service, boot, kernel, filesystem, or configuration state was changed.
+
+The baseline was committed atomically:
+
+```bash
+git add docs/aarch64-port/baseline-2026-07-29.md \
+  docs/aarch64-port/installed-packages-2026-07-29.txt \
+  docs/aarch64-port/command-log.md
+git commit -m "Document ARM64 UTM baseline"
+```
+
+## 2026-07-29: Repository pinning
+
+The existing Omarchy worktree was already on the dedicated
+`quattro-aarch64-utm` branch. It was updated from the current Quattro source
+tip without modifying the upstream branch:
+
+```bash
+git fetch upstream quattro
+git fetch origin
+git rebase upstream/quattro
+```
+
+The other repositories were cloned into separate worktrees:
+
+```bash
+git clone https://github.com/omacom-io/omarchy-pkgs.git \
+  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+git clone --branch quattro --single-branch \
+  https://github.com/omacom-io/omarchy-iso.git \
+  /home/jj/Projects/omarchy-iso-quattro-arm64
+```
+
+Repository-local instruction discovery:
+
+```bash
+rg --files -g AGENTS.md
+```
+
+The Omarchy root `AGENTS.md` was read completely. No `AGENTS.md` exists in
+either newly cloned repository at the pinned revisions.
+
+Created the same isolated branch in each new worktree:
+
+```bash
+git switch -c quattro-aarch64-utm
+```
+
+Exact commits and worktree paths are recorded in
+[`repositories.md`](repositories.md).
