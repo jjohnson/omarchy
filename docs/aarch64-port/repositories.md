@@ -22,8 +22,17 @@ The Omarchy repository contains a root `AGENTS.md`, which was read completely
 before editing. Neither the package repository nor the ISO repository contains
 an `AGENTS.md` at its recorded commit.
 
-The package repository development branch now contains the atomic commit
-`c2a36d3` (`Build Gradle for aarch64`). That source change adds the official
-Arch Gradle 9.6.1 packaging recipe, pinned to Arch packaging commit
-`65fdb1b6b29b8966bb340a2c919e131cded3b53a`, and constrains the locally rebuilt
-package to AArch64.
+The package repository development branch now contains these pushed atomic
+commits:
+
+- `c2a36d3` (`Build Gradle for aarch64`) adds the official Arch Gradle 9.6.1
+  packaging recipe, pinned to Arch packaging commit
+  `65fdb1b6b29b8966bb340a2c919e131cded3b53a`, and constrains the locally
+  rebuilt package to AArch64.
+- `74775e1` (`Add aarch64 support for native utilities`) declares AArch64 for
+  `asdcontrol`, `hyprland-preview-share-picker`, and `tensaku` after all three
+  completed clean native builds.
+
+The current package-repository branch tip is
+`74775e1e3f8a0165b7d5e5e5074c80a4fe961462` and is pushed to the personal
+origin.

@@ -1022,3 +1022,77 @@ revert.
 The migration queue remained at 46, no rollback timer existed, and all four
 protected hashes remained exact. This completed the isolated NetworkManager
 persistence phase without running a migration or touching the boot stack.
+
+## 2026-07-30: Phase 3 base-package clone audit
+
+The proven Phase 2 state was duplicated as:
+
+```text
+Quattro-ARM64-Phase-3-Base-Packages-Working-2026-07-30
+```
+
+The Phase 2 checkpoint and powered-off gold VM remain unchanged. The Phase 3
+clone booted at `2026-07-30 02:47:44 EDT` with:
+
+```text
+kernel:             7.1.5-2-aarch64-ARCH
+NetworkManager:     enabled and active
+systemd-networkd:   disabled and inactive
+enp0s1:             192.168.64.4/24
+Quickshell IPC:     ok
+Hyprland errors:    none
+display:            1280x800@74.994, scale 1
+renderer:           direct virgl (Apple M4 Pro), OpenGL 4.1
+failed units:       zero system and user
+pending migrations: 46
+```
+
+All three development repositories were clean at their pushed commits. The
+four protected boot hashes remained exact. A manual post-reboot host resize
+stayed at the requested dimensions after the previous rollback window.
+
+## 2026-07-30: Phase 3 native package builds
+
+After NetworkManager satisfied one more manifest entry, 20 of the 143 literal
+base-manifest names remained unsatisfied. Four already-declared recipes were
+built first:
+
+```bash
+./bin/repo build --arch aarch64 --package \
+  cliamp omacut omawrite tobi-try
+```
+
+All four completed. Their artifacts were preserved before the builder cleanup
+at:
+
+```text
+build-output/phase3-native-batch1-20260730-0310/
+```
+
+The x86_64-only metadata on three native-source recipes was changed to include
+`aarch64`, then validated with `bash -n`, `makepkg --printsrcinfo`, and a clean
+container build:
+
+```bash
+./bin/repo build --arch aarch64 --package \
+  asdcontrol hyprland-preview-share-picker tensaku
+```
+
+All three completed. Their artifacts were preserved at:
+
+```text
+build-output/phase3-native-batch2-20260730-0315/
+```
+
+Package-repository commit `74775e1` contains only the three architecture
+declarations and is pushed to `origin/quattro-aarch64-utm`.
+
+Every compiled payload was inspected with `file` and `readelf` and reported
+ELF64 little-endian AArch64. `tobi-try` is an architecture-independent Ruby
+application. Package metadata, contents, install scriptlets, SHA-256 hashes,
+and dry pacman transactions were inspected. The first batch requires only
+`yt-dlp` and its native repository dependencies; the second batch already has
+all runtime dependencies on the host.
+
+No Phase 3 package has yet been installed system-wide. Building changed only
+Docker state and ignored package-output directories.

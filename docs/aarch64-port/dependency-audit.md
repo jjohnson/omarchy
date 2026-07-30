@@ -192,34 +192,57 @@ packages and `provides` entries satisfied 122 names. The remaining 21 are:
 
 | Package | Current AArch64 evidence | Classification |
 | --- | --- | --- |
-| `asdcontrol` | Omarchy recipe is `x86_64`; this UTM VM has no USB Apple display | x86-only and optional here |
+| `asdcontrol` | Clean native build produced an AArch64 ELF; this UTM VM has no USB Apple display | Buildable from `omarchy-pkgs`; optional here |
 | `bluez-utils` | `extra`, 5.87-2, `aarch64` | Available unchanged |
-| `cliamp` | Omarchy recipe declares `aarch64` | Buildable from `omarchy-pkgs` |
+| `cliamp` | Clean native build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
 | `dotnet-runtime` | Absent from Arch Linux ARM; AUR `dotnet-runtime-bin` declares `aarch64` and provides the name | Available under another package name |
 | `dua-cli` | `extra`, 2.39.0-1, `aarch64` | Available unchanged |
 | `foot` | `extra`, 1.27.0-1, `aarch64` | Available unchanged |
 | `gpu-screen-recorder` | `extra`, 5.15.3-1, `aarch64` | Available unchanged |
-| `hyprland-preview-share-picker` | Rust source recipe is currently constrained to `x86_64` | Build candidate; needs native proof |
+| `hyprland-preview-share-picker` | Clean native Rust build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
 | `networkmanager` | `extra`, 1.58.0-1, `aarch64`; installed and live-tested | Available unchanged |
 | `lua51` | `extra`, 5.1.5-13, `aarch64` | Available unchanged |
 | `moonlight-qt` | `extra`, 6.1.0-6, `aarch64` | Available unchanged |
 | `mpv-mpris` | `extra`, 1.2-1, `aarch64` | Available unchanged |
 | `obs-studio` | Official Arch package is `x86_64`; upstream is source available | x86-only and optional; ARM recipe work |
 | `obsidian` | Arch package name is absent; upstream publishes an ARM64 Linux AppImage | Available through another packaging route |
-| `omacut` | Omarchy recipe declares `aarch64` | Buildable from `omarchy-pkgs` |
-| `omawrite` | Omarchy recipe declares `aarch64` | Buildable from `omarchy-pkgs` |
+| `omacut` | Clean native Qt build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
+| `omawrite` | Clean native Qt build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
 | `pinta` | Recipe is `x86_64` and hard-codes `linux-x64`; ARM64 .NET is available from AUR | Optional app requiring source/recipe changes |
 | `qemu-user-static-binfmt` | Exact static package is absent; `qemu-user-binfmt` 11.0.2-4 is in `extra/aarch64` | Available under another package name for normal binfmt use |
-| `tensaku` | Rust source recipe is currently constrained to `x86_64` | Build candidate; needs native proof |
-| `tobi-try` | Omarchy recipe declares `aarch64` | Buildable from `omarchy-pkgs` |
+| `tensaku` | Clean native Rust/GTK build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
+| `tobi-try` | Clean native build packaged the architecture-independent Ruby application | Buildable from `omarchy-pkgs` |
 | `yt-dlp` | `extra`, 2025.12.08-2, `any` | Available unchanged |
 
-This is an availability audit, not a build claim for recipes still marked as
-candidates. There is no new blocker for the Hyprland/Quickshell desktop or the
-NetworkManager transition. Full default-application parity still requires
-native builds for the two Rust candidates, an ARM64 Pinta recipe, decisions
-for the optional Apple-display and OBS packages, and confirmation that dynamic
-`qemu-user-binfmt` is sufficient for the intended ISO build workflows.
+There is no new blocker for the Hyprland/Quickshell desktop or the
+NetworkManager transition. Full default-application parity still requires an
+ARM64 Pinta/.NET recipe, decisions for OBS Studio and Obsidian, and
+confirmation that dynamic `qemu-user-binfmt` is sufficient for the intended
+ISO build workflows.
 
 The NetworkManager transition and visual panel proof are recorded in
 [`phase2-networkmanager-2026-07-30.md`](phase2-networkmanager-2026-07-30.md).
+
+## Phase 3 Native Build Proof
+
+The Phase 3 clone built seven Omarchy base-manifest packages in a clean ARM64
+Docker builder:
+
+```text
+asdcontrol                       1:0.6.0-1
+cliamp                           1.62.0-1
+hyprland-preview-share-picker    0.2.1-1
+omacut                           0.2.0-1
+omawrite                         0.4.0-1
+tensaku                          0.26.6-1
+tobi-try                         1.8.1-2
+```
+
+`file` and `readelf` identified the compiled payloads as ELF64 little-endian
+AArch64 executables. `tobi-try` is a Ruby application. Package contents,
+install scriptlets, dependencies, and dry pacman transactions were inspected
+before any system-wide installation.
+
+The only source changes required for this batch were architecture declarations
+for the three native-source recipes that had been constrained to x86_64.
+Those changes are pushed in package-repository commit `74775e1`.
