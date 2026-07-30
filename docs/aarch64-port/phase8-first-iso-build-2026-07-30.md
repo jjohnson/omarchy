@@ -261,7 +261,7 @@ Hyprland errors:     none
 failed units:        zero system and user
 renderer:            direct virgl (Apple M4 Pro), OpenGL 4.1
 available memory:    approximately 10 GiB
-available disk:      approximately 39 GiB
+available disk:      approximately 43 GiB
 ```
 
 The protected hashes remain exact:
