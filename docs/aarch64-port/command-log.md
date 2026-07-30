@@ -566,3 +566,64 @@ Re-ran menu, keyboard terminal launch, notifications, workspaces, VirGL,
 software-rendering override, audio, clipboard, SPICE, failed-unit, visual, and
 boot-hash checks. The detailed result and rollback instructions are in
 [`persistent-cutover-2026-07-30.md`](persistent-cutover-2026-07-30.md).
+
+## 2026-07-30: Persistent Quattro proof boot
+
+Verified that the new login selected Quattro rather than returning to the
+mixed 3.x session:
+
+```bash
+systemctl --user show-environment
+ps -eo pid,ppid,stat,comm,args
+hyprctl configerrors
+rg 'Using config|Lua config' /run/user/1000/hypr/*/hyprland.log
+omarchy-shell shell ping
+```
+
+Hyprland loaded `~/.config/hypr/hyprland.lua`, UWSM exported
+`OMARCHY_PATH=/usr/share/omarchy`, and Quickshell started directly as a
+Hyprland child. The previous transient validation service was absent and no
+legacy UI process returned.
+
+Inspected the user-supplied notification image at:
+
+```text
+~/utm/quattro-desktop-notifications.png
+```
+
+The notification layout was visually clean, but Quattro autostart reported
+that `udiskie` was missing. Installed the unchanged signed Arch Linux ARM
+package and its three missing dependencies:
+
+```bash
+pkexec pacman -S --noconfirm --needed udiskie
+```
+
+Verified the package with `pacman -Qk`, relaunched the exact autostart command
+through Hyprland/UWSM, and confirmed the process remained active.
+
+Restarted the persistent shell through the normal user command:
+
+```bash
+omarchy restart shell
+```
+
+The replacement process remained a Hyprland child, reclaimed notifications,
+and returned `ok` from IPC without temporary environment overrides.
+
+Audited the 46 pending Quattro migrations but did not run or fake-complete
+them. Runtime finalization intentionally does not stamp migrations for an
+existing user, and the queue includes NetworkManager migration plus
+conditional initramfs/Limine rebuilds. Those operations belong to a later
+system-integration phase and exceed this milestone's no-boot-change boundary.
+
+Repeated Lua config reload, menu, keyboard terminal launch, notification,
+workspace, VirGL, software-rendering override, audio, clipboard, SPICE,
+failed-unit, visual, and boot-hash checks. With Lua active, workspace IPC used:
+
+```bash
+hyprctl dispatch 'hl.dsp.focus({ workspace = "3" })'
+```
+
+The complete proof-boot result is recorded in
+[`persistent-session-proof-2026-07-30.md`](persistent-session-proof-2026-07-30.md).

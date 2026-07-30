@@ -215,3 +215,7 @@ The simplest compositor rollback from a TTY is to move
 back to the preserved `~/.config/hypr/hyprland.conf`. The complete pre-cutover
 state is available in the tar archive, and every retired login hook is also
 available under the timestamped rollback directory.
+
+The subsequent proof boot passed. Its full evidence and remaining boundaries
+are recorded in
+[`persistent-session-proof-2026-07-30.md`](persistent-session-proof-2026-07-30.md).
