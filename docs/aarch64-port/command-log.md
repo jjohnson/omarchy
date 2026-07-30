@@ -1182,3 +1182,159 @@ Quickshell IPC, empty Hyprland errors, NetworkManager full connectivity,
 direct VirGL, zero failed units, and all protected hashes passed after the
 transactions. Tensaku's optional wiring command and the Quattro migration and
 finalization commands were not run.
+
+## 2026-07-30: Phase 3 .NET and Pinta completion
+
+Added an AArch64 package for Microsoft's official .NET 10 SDK and changed the
+Pinta recipe to select its runtime identifier by `CARCH`:
+
+```text
+aarch64 -> linux-arm64
+x86_64  -> linux-x64
+```
+
+Pinta also updates `Tmds.DBus` from `0.22.0` to `0.92.0`. Clean container
+builds were inspected before installation. Final artifacts:
+
+```text
+build-output/phase3-native-batch5-20260730-0326/dotnet-sdk-bin-10.0.10.sdk302-1-aarch64.pkg.tar.xz
+SHA-256: a5ace2eb5c025e5b6061d80a6d43486c4aa3322e4a722cea64b678bcec981b9f
+
+build-output/phase3-native-batch5-20260730-0326/pinta-3.1.2-2-aarch64.pkg.tar.xz
+SHA-256: 61e79f76a8d7978e51209af812a8077d7aecd180e431c0c5f441c2d78473bf4a
+```
+
+Installed versions:
+
+```text
+dotnet-sdk-bin 10.0.10.sdk302-1
+pinta 3.1.2-2
+```
+
+The SDK provides `dotnet-host`, `dotnet-runtime`,
+`dotnet-targeting-pack`, and `dotnet-sdk`. Both packages passed file and
+dependency checks. Pinta launched through UWSM and its UI was inspected at:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_03-26-51.png
+```
+
+Package-repository commits `f49bdf2` and `d95da3e` are pushed.
+
+## 2026-07-30: Phase 3 Obsidian completion
+
+Packaged upstream Obsidian `1.12.7` from its official ARM64 AppImage. The
+first package build exposed mode `0700` on extracted icon directories;
+revision 2 normalizes every icon directory to `0755`.
+
+Before installation, the existing unowned ARM AppImage was moved to:
+
+```text
+/home/jj/.local/state/omarchy/phase3-collision-backup-20260730-031300/moved-unowned/obsidian-legacy.AppImage
+```
+
+Final artifact:
+
+```text
+build-output/phase3-native-batch7-20260730-0334/obsidian-appimage-1.12.7-2-aarch64.pkg.tar.xz
+SHA-256: 4cf5d2d2441f29af1a7862b426980df8276e3e4bf01e0aad29bce401b906f39e
+```
+
+The package owns 36 files with none missing and provides the manifest name
+`obsidian`. The application launched through UWSM, held
+`/dev/dri/renderD128`, and showed no clipping or layout defects:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_03-34-34.png
+```
+
+Package-repository commits `8ed9c0d` and `9468558` are pushed.
+
+## 2026-07-30: Phase 3 OBS Studio completion
+
+Based the ARM recipe on Arch's OBS package and built upstream tag `32.2.1`
+natively. The optional browser plugin is disabled; Wayland, PipeWire,
+WebSocket, scripting, x264, FDK AAC, VST, and WebRTC remain enabled.
+
+Revision 1 built and installed, but its launch exposed missing mbedTLS sonames
+in `obs-outputs.so`. The signed Arch Linux ARM `mbedtls3 3.6.6-1` package
+claimed the six required top-level symlinks while installing incorrect
+relative targets. Reinstalling that package reproduced all six
+`pacman -Qkk` failures.
+
+Revision 2 depends on signed repository package `mbedtls 3.6.5-1` instead.
+The broken `mbedtls3` package was removed, the corrected OBS package was
+installed, and both packages then passed complete file checks. Final artifact:
+
+```text
+build-output/phase3-native-batch9-20260730-0357/obs-studio-32.2.1-2-aarch64.pkg.tar.xz
+SHA-256: a98c593f3fef38dc7f5d19a821475dd30f930742016a1ed808ccf9a194701306
+```
+
+`ldd /usr/lib/obs-plugins/obs-outputs.so` resolved all three mbedTLS
+libraries. The corrected live launch reported:
+
+```text
+Platform: Wayland
+OpenGL adapter: Mesa virgl (Apple M4 Pro)
+OpenGL: 4.1 Core Profile
+loaded: obs-outputs.so, linux-pipewire.so, obs-websocket.so
+audio: PipeWire desktop monitor and microphone capture started
+encoders: x264, AAC, Opus, FDK AAC, PCM, ALAC, FLAC
+```
+
+OBS held `/dev/dri/renderD128`, had no software renderer overrides, and shut
+down with zero reported memory leaks. Visual reference:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_03-59-07.png
+```
+
+Package-repository commits `8f6bc12` and `d0f3fdc` are pushed.
+
+## 2026-07-30: Architecture-resolved base manifest completed
+
+Arch Linux ARM has:
+
+```text
+qemu-user-binfmt 11.0.2-4 aarch64
+```
+
+It does not have the manifest's x86 package name
+`qemu-user-static-binfmt`. Added `omarchy-pkg-base-list` to preserve the
+literal name on x86_64 and substitute `qemu-user-binfmt` only on AArch64.
+Reinstall, Quattro upgrade, and system acceptance paths now consume the same
+resolver. Focused tests pass both mappings and comment/blank filtering.
+
+Source commit:
+
+```text
+8eb138c19fddb1c42b020047052e6c9674e135a9
+```
+
+Installed the signed ARM package:
+
+```bash
+pkexec pacman -S --noconfirm --needed qemu-user-binfmt
+```
+
+The transaction installed matching `qemu-user 11.0.2-4` and registered
+foreign handlers under `/proc/sys/fs/binfmt_misc`, including
+`qemu-x86_64`. Final provider-aware audit:
+
+```text
+resolved_manifest_entries=143
+missing=0
+```
+
+Both QEMU packages pass file checks. The aggregate shell suite reaches and
+passes the new resolver test when supplied the nonstandard sibling checkout
+paths. Two unrelated existing checks remain red: missing CLI metadata on
+`omarchy-update-system-pkgs-when-conflicted`, and the sleep-lock timing budget
+at approximately 1.60 seconds in this VM.
+
+The final desktop health check retained Quickshell IPC, empty Hyprland
+configuration errors, NetworkManager connectivity, direct VirGL on the Apple
+M4 Pro, zero failed system/user units, and exact protected hashes. No
+migration, finalization, kernel, initramfs, Limine, UEFI, partition, or
+filesystem action was run.

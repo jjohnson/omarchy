@@ -195,7 +195,7 @@ packages and `provides` entries satisfied 122 names. The remaining 21 are:
 | `asdcontrol` | Clean native build produced an AArch64 ELF; this UTM VM has no USB Apple display | Buildable from `omarchy-pkgs`; optional here |
 | `bluez-utils` | `extra`, 5.87-2, `aarch64` | Available unchanged |
 | `cliamp` | Clean native build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
-| `dotnet-runtime` | Absent from Arch Linux ARM; AUR `dotnet-runtime-bin` declares `aarch64` and provides the name | Available under another package name |
+| `dotnet-runtime` | Local `dotnet-sdk-bin 10.0.10.sdk302-1` packages Microsoft's official ARM64 SDK and provides the host/runtime/targeting names; installed and verified | Buildable from `omarchy-pkgs` under a provider package |
 | `dua-cli` | `extra`, 2.39.0-1, `aarch64` | Available unchanged |
 | `foot` | `extra`, 1.27.0-1, `aarch64` | Available unchanged |
 | `gpu-screen-recorder` | `extra`, 5.15.3-1, `aarch64` | Available unchanged |
@@ -204,21 +204,21 @@ packages and `provides` entries satisfied 122 names. The remaining 21 are:
 | `lua51` | `extra`, 5.1.5-13, `aarch64` | Available unchanged |
 | `moonlight-qt` | `extra`, 6.1.0-6, `aarch64` | Available unchanged |
 | `mpv-mpris` | `extra`, 1.2-1, `aarch64` | Available unchanged |
-| `obs-studio` | Official Arch package is `x86_64`; upstream is source available | x86-only and optional; ARM recipe work |
-| `obsidian` | Arch package name is absent; upstream publishes an ARM64 Linux AppImage | Available through another packaging route |
+| `obs-studio` | Local `32.2.1-2` native build passed Wayland, direct VirGL, PipeWire capture/audio, WebSocket, encoder, and visual checks | Buildable from `omarchy-pkgs`; browser plugin optional and omitted |
+| `obsidian` | Local `obsidian-appimage 1.12.7-2` packages the official ARM64 AppImage, provides `obsidian`, and passed GPU/visual checks | Buildable from `omarchy-pkgs` using the upstream ARM64 distribution |
 | `omacut` | Clean native Qt build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
 | `omawrite` | Clean native Qt build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
-| `pinta` | Recipe is `x86_64` and hard-codes `linux-x64`; ARM64 .NET is available from AUR | Optional app requiring source/recipe changes |
-| `qemu-user-static-binfmt` | Exact static package is absent; `qemu-user-binfmt` 11.0.2-4 is in `extra/aarch64` | Available under another package name for normal binfmt use |
+| `pinta` | Local `3.1.2-2` selects `linux-arm64`, uses the local .NET provider, and passed package and visual checks | Buildable from `omarchy-pkgs` |
+| `qemu-user-static-binfmt` | `omarchy-pkg-base-list` maps only AArch64 to signed `qemu-user-binfmt 11.0.2-4`; installed handlers are registered | Available under another package name through an architecture substitution |
 | `tensaku` | Clean native Rust/GTK build produced an AArch64 ELF | Buildable from `omarchy-pkgs` |
 | `tobi-try` | Clean native build packaged the architecture-independent Ruby application | Buildable from `omarchy-pkgs` |
 | `yt-dlp` | `extra`, 2025.12.08-2, `any` | Available unchanged |
 
-There is no new blocker for the Hyprland/Quickshell desktop or the
-NetworkManager transition. Full default-application parity still requires an
-ARM64 Pinta/.NET recipe, decisions for OBS Studio and Obsidian, and
-confirmation that dynamic `qemu-user-binfmt` is sufficient for the intended
-ISO build workflows.
+There is no blocker for the Hyprland/Quickshell desktop, NetworkManager
+transition, or architecture-resolved default package set. All 143 base
+manifest entries now satisfy `pacman -T` on this AArch64 VM. The ISO has not
+been built; installer integration and any requirement for static user-mode
+emulation remain later ISO-phase questions.
 
 The NetworkManager transition and visual panel proof are recorded in
 [`phase2-networkmanager-2026-07-30.md`](phase2-networkmanager-2026-07-30.md).

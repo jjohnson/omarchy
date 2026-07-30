@@ -36,7 +36,24 @@ commits:
   payload after the package transaction exposed an older recipe.
 - `23d81b0` (`Conflict share picker with git variant`) allows the stable
   package to replace the legacy `-git` package transactionally.
+- `f49bdf2` (`Add AArch64 .NET SDK package`) packages Microsoft's official
+  ARM64 SDK and provides the .NET host/runtime/targeting names.
+- `d95da3e` (`Build Pinta on aarch64`) selects the ARM64 runtime identifier
+  and updates the vulnerable D-Bus dependency.
+- `8ed9c0d` (`Package Obsidian for aarch64`) packages the official upstream
+  ARM64 AppImage.
+- `9468558` (`Normalize Obsidian icon permissions`) corrects extracted icon
+  directory modes.
+- `8f6bc12` (`Build OBS Studio on aarch64`) adds the native source build
+  without the optional browser plugin.
+- `d0f3fdc` (`Use native mbedTLS for ARM OBS`) replaces the broken Arch Linux
+  ARM `mbedtls3` layout with the working native `mbedtls` package.
 
 The current package-repository branch tip is
-`23d81b0c5d2af7ba9e29f39c85b5b90e858b2d9f` and is pushed to the personal
+`d0f3fdc804540fedae054751e89124f04f2fb707` and is pushed to the personal
+origin.
+
+The Omarchy branch contains source checkpoint
+`8eb138c19fddb1c42b020047052e6c9674e135a9`, which adds the tested
+architecture-aware base-package resolver. It is pushed to the personal
 origin.

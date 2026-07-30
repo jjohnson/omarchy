@@ -136,27 +136,133 @@ tensaku 0.26.6
 
 No optional Tensaku wiring or migration/finalization command was run.
 
-## Remaining Base-Manifest Work
+## Application and Runtime Completion
 
-The staged transactions increased literal base-manifest resolution from
-123/143 to 138/143. Five names still need a packaging or substitution
-decision:
+The final four application/runtime names were satisfied by inspected local
+ARM64 packages:
+
+| Manifest name | Installed provider | Version | Result |
+| --- | --- | --- | --- |
+| `dotnet-runtime` | `dotnet-sdk-bin` | `10.0.10.sdk302-1` | Official Microsoft ARM64 SDK; provides host, runtime, targeting pack, and SDK |
+| `pinta` | `pinta` | `3.1.2-2` | Native ARM64 .NET build |
+| `obsidian` | `obsidian-appimage` | `1.12.7-2` | Official upstream ARM64 AppImage |
+| `obs-studio` | `obs-studio` | `32.2.1-2` | Native ARM64 build with Wayland, PipeWire, WebSocket, scripting, x264, FDK AAC, and WebRTC |
+
+The package changes are pushed as separate commits:
 
 ```text
-dotnet-runtime
-obs-studio
-obsidian
-pinta
-qemu-user-static-binfmt
+f49bdf2  Add AArch64 .NET SDK package
+d95da3e  Build Pinta on aarch64
+8ed9c0d  Package Obsidian for aarch64
+9468558  Normalize Obsidian icon permissions
+8f6bc12  Build OBS Studio on aarch64
+d0f3fdc  Use native mbedTLS for ARM OBS
 ```
 
-`dotnet-runtime` and Pinta form one ARM64 packaging chain. Obsidian has an
-upstream ARM64 distribution route. OBS Studio remains optional desktop
-application recipe work. Arch Linux ARM publishes `qemu-user-binfmt`, not the
-literal static package name, so source-side architecture substitution is
-needed before the complete manifest can be considered portable.
+Final artifact SHA-256 values:
 
-After both transactions, Quickshell IPC returned `ok`, Hyprland had no
-configuration errors, NetworkManager retained full connectivity, and VirGL
-remained direct on the Apple M4 Pro with OpenGL 4.1. There were zero failed
-system and user units. All four protected hashes remained exact.
+```text
+a5ace2eb5c025e5b6061d80a6d43486c4aa3322e4a722cea64b678bcec981b9f  dotnet-sdk-bin-10.0.10.sdk302-1-aarch64.pkg.tar.xz
+61e79f76a8d7978e51209af812a8077d7aecd180e431c0c5f441c2d78473bf4a  pinta-3.1.2-2-aarch64.pkg.tar.xz
+4cf5d2d2441f29af1a7862b426980df8276e3e4bf01e0aad29bce401b906f39e  obsidian-appimage-1.12.7-2-aarch64.pkg.tar.xz
+a98c593f3fef38dc7f5d19a821475dd30f930742016a1ed808ccf9a194701306  obs-studio-32.2.1-2-aarch64.pkg.tar.xz
+```
+
+The final artifacts are preserved in:
+
+```text
+build-output/phase3-native-batch5-20260730-0326/
+build-output/phase3-native-batch7-20260730-0334/
+build-output/phase3-native-batch9-20260730-0357/
+```
+
+Pinta uses an architecture-selected .NET runtime identifier and updates
+`Tmds.DBus` from vulnerable `0.22.0` to `0.92.0`. It launched through UWSM and
+rendered cleanly:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_03-26-51.png
+```
+
+The existing unowned Obsidian ARM AppImage was moved intact before the
+package-owned launcher was installed:
+
+```text
+/home/jj/.local/state/omarchy/phase3-collision-backup-20260730-031300/moved-unowned/obsidian-legacy.AppImage
+```
+
+The packaged application launched on the desktop, held
+`/dev/dri/renderD128`, and passed visual inspection:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_03-34-34.png
+```
+
+OBS is built without the optional Chromium browser plugin because upstream's
+Linux ARM browser support and CEF bundle remain experimental. Its first
+package revision exposed an Arch Linux ARM `mbedtls3 3.6.6-1` defect: the
+package claimed six top-level library symlinks but installed them with
+incorrect relative targets, and `pacman -Qkk mbedtls3` reported all six
+missing. OBS revision 2 instead depends on repository package
+`mbedtls 3.6.5-1`, whose files and sonames verify.
+
+The corrected OBS launch proved:
+
+- native Wayland and EGL;
+- direct `Mesa virgl (Apple M4 Pro)` OpenGL 4.1;
+- an open `/dev/dri/renderD128` descriptor;
+- loaded `obs-outputs.so`, `linux-pipewire.so`, and `obs-websocket.so`;
+- PipeWire monitor and window capture sources;
+- active desktop and microphone audio capture;
+- x264, AAC, Opus, FDK AAC, and lossless audio encoders;
+- no software-rendering environment override;
+- clean shutdown with zero reported memory leaks.
+
+Visual reference:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_03-59-07.png
+```
+
+DeckLink, VAAPI encoding, and virtual-camera warnings are expected for this
+VirGL VM and optional hardware. They do not prevent normal recording.
+
+## Architecture-Resolved Manifest Completion
+
+Arch Linux ARM publishes `qemu-user-binfmt 11.0.2-4`, not
+`qemu-user-static-binfmt`. Commit
+`8eb138c19fddb1c42b020047052e6c9674e135a9` adds
+`omarchy-pkg-base-list`, which preserves the static package name on x86_64
+and substitutes only `qemu-user-binfmt` on AArch64. Upgrade, reinstall, and
+acceptance paths now consume the same resolved list.
+
+Focused tests cover comment/blank filtering and both architecture results.
+The resolver emits 143 entries for AArch64. After installing the signed
+`qemu-user-binfmt` package and its matching `qemu-user` dependency:
+
+```text
+resolved_manifest_entries=143
+missing=0
+qemu-user 11.0.2-4
+qemu-user-binfmt 11.0.2-4
+```
+
+Both packages pass `pacman -Qk`. The post-transaction hook registered the
+foreign binary formats, including `qemu-x86_64`, under
+`/proc/sys/fs/binfmt_misc`. The `systemd-binfmt` oneshot is inactive after
+registration, while the kernel registrations remain present.
+
+The aggregate shell suite reaches and passes the new resolver test when given
+the actual sibling checkout paths. Unrelated baseline failures remain:
+
+- CLI metadata is missing for existing command
+  `omarchy-update-system-pkgs-when-conflicted`;
+- the sleep-lock budget test takes about 1.60 seconds in this VM and exceeds
+  its existing timing threshold.
+
+No source touched by the ARM64 resolver is implicated in either failure.
+
+After the complete transaction set, Quickshell IPC returned `ok`, Hyprland had
+no configuration errors, NetworkManager retained full connectivity, and
+VirGL remained direct on the Apple M4 Pro with OpenGL 4.1. There were zero
+failed system and user units. All four protected hashes remained exact.
