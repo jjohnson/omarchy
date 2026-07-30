@@ -270,6 +270,79 @@ The four protected hashes remain byte-for-byte identical to their Phase 3
 values. No migration, finalization, kernel, initramfs, Limine, UEFI,
 partition, or filesystem action ran.
 
-One controlled reboot is still required to prove that the cleaned package set,
-Retina scale, Quickshell desktop, active `greetd` login path, NetworkManager,
-audio, and VirGL all return without a legacy fallback.
+## Post-Reboot Proof
+
+The controlled proof boot began at `2026-07-30 05:09:02 EDT`. The normal
+login and session chain returned:
+
+```text
+greetd -> start-hyprland -> Hyprland
+                             |- quickshell
+                             `- omarchy-hyprland-spice-resize
+```
+
+Hyprland selected `/home/jj/.config/hypr/hyprland.lua`, UWSM exported
+`OMARCHY_PATH=/usr/share/omarchy`, and exactly one package-owned SPICE resize
+helper ran as a direct Hyprland child. The current-boot journals contained no
+Quickshell warnings, Hyprland errors, or `greetd` errors.
+
+The reboot audit reproduced the pre-reboot package state:
+
+```text
+installed packages:  982
+explicit packages:   201
+foreign packages:    37
+orphans:             0
+manifest entries:    143
+manifest missing:    0
+pending migrations:  46
+```
+
+Both removal batches remain absent. The six normalized base providers remain
+installed and explicit. `omarchy-dev`, `omarchy-settings-dev`,
+`quickshell-git`, and Hyprland passed package-file checks; the protected
+sudoers paths in `omarchy-settings-dev` were verified through `pkexec`.
+
+Runtime proof after reboot:
+
+- Quickshell IPC returned `ok`, with no Hyprland configuration errors.
+- The Quickshell root menu, notification surface, and migration notification
+  rendered without clipping or overlap.
+- `omarchy launch terminal` opened a second Alacritty window normally; it was
+  closed after inspection.
+- Lua workspace dispatch moved from workspace 1 to 3 and back to 1.
+- NetworkManager restored the same `.4` address and `.1` gateway; DNS and an
+  HTTPS request to Arch Linux ARM passed.
+- PipeWire, PipeWire Pulse, and WirePlumber were active with the SPICE audio
+  device exposed. The existing output volume remained at the user's setting
+  of zero, so an audible playback test was not forced.
+- Both SPICE agents and all three Quickshell clipboard watchers returned.
+- Direct VirGL remained active on the Apple M4 Pro with OpenGL 4.1 and no
+  software-rendering environment override.
+- There were zero failed system or user units.
+
+Visual references:
+
+```text
+menu:         /home/jj/Pictures/screenshot-2026-07-30_05-11-17.png
+notification: /home/jj/Pictures/screenshot-2026-07-30_05-11-25.png
+terminal:     /home/jj/Pictures/screenshot-2026-07-30_05-11-52.png
+```
+
+The display initially returned at `3024x1818@60`, scale 2. The user then
+resized the UTM window and waited beyond the prior rollback interval. The
+window stayed put at:
+
+```text
+physical mode: 2828x1818@60
+DRM preferred: 2828x1818
+scale:         2
+logical size:  1414x909
+```
+
+The user also copied `phase4-clipboard-ok` from macOS and pasted it into the
+guest, proving host-to-guest SPICE clipboard transfer after reboot.
+
+All four protected hashes remain byte-for-byte exact. No migration,
+finalization, kernel, initramfs, Limine, UEFI, partition, or filesystem action
+ran. Phase 4 legacy cleanup is complete.

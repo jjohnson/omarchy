@@ -1418,5 +1418,43 @@ opencode
 
 The four applications are retained to preserve user choices. `impala` and
 `iwd` are deferred network rollback assets. The active `greetd` login manager
-is protected. A controlled reboot remains before Phase 4 can be declared
-complete.
+is protected.
+
+## 2026-07-30: Phase 4 cleanup proof reboot
+
+The controlled reboot began at `2026-07-30 05:09:02 EDT`. `greetd`,
+start-hyprland, Hyprland, Quickshell, and exactly one package-owned SPICE
+resize helper returned through the normal persistent path. Hyprland selected
+the Lua user config, UWSM exported `/usr/share/omarchy`, and the current-boot
+logs contained no Quickshell warnings, Hyprland errors, or `greetd` errors.
+
+The reboot reproduced 982 installed packages, 201 explicit packages, 37
+foreign packages, zero orphans, 143 satisfied manifest entries, and 46
+pending migrations. Both removal batches remained absent. The six normalized
+base providers remained installed and explicit. Core Omarchy, settings,
+Quickshell, and Hyprland packages passed file checks.
+
+NetworkManager restored the `.4` address and `.1` gateway; DNS and HTTPS
+passed. PipeWire, PipeWire Pulse, and WirePlumber were active with the SPICE
+audio device present. Both SPICE agents and Quickshell's clipboard watchers
+returned. Direct VirGL remained active on the Apple M4 Pro with OpenGL 4.1,
+no software-rendering override, and zero failed system or user units.
+
+The Quickshell root menu, notification surface, and a newly launched terminal
+passed visual inspection:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_05-11-17.png
+/home/jj/Pictures/screenshot-2026-07-30_05-11-25.png
+/home/jj/Pictures/screenshot-2026-07-30_05-11-52.png
+```
+
+Lua workspace dispatch moved from workspace 1 to 3 and back. The user resized
+the UTM window and waited beyond the old rollback interval. The guest stayed
+at `2828x1818@60`, scale 2, logical `1414x909`, with the DRM preferred mode
+matching Hyprland. The user also copied `phase4-clipboard-ok` on macOS and
+pasted it into the guest, proving host-to-guest SPICE clipboard transfer.
+
+The four protected hashes remained exact. No migration, finalization, kernel,
+initramfs, Limine, UEFI, partition, or filesystem action ran. Phase 4 legacy
+cleanup is complete.
