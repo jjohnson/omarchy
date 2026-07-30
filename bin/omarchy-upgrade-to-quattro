@@ -923,8 +923,41 @@ done
 USER_UNITS
 }
 
+legacy_iwd_backend_config() {
+  local config="$1"
+  local contents
+
+  [[ -f $config ]] || return 1
+  contents=$(<"$config")
+  [[ $contents == $'[device]\nwifi.backend=iwd' ]]
+}
+
+cleanup_legacy_iwd_backend_config() {
+  local config="${OMARCHY_LEGACY_IWD_CONFIG:-/etc/NetworkManager/conf.d/iwd.conf}"
+  local backup
+
+  [[ -e $config || -L $config ]] || return 0
+
+  if pacman -Qo "$config" >/dev/null 2>&1; then
+    warn "Leaving package-owned NetworkManager iwd backend config in place: $config"
+    return 0
+  fi
+
+  if ! legacy_iwd_backend_config "$config"; then
+    warn "Leaving customized NetworkManager iwd backend config in place: $config"
+    return 0
+  fi
+
+  backup="$config.omarchy-upgrade-to-quattro.$backup_suffix.bak"
+  log "Retiring the legacy NetworkManager iwd backend config"
+  as_root cp -af "$config" "$backup"
+  as_root rm -f "$config"
+}
+
 cleanup_retired_services() {
   log "Disabling services retired by Omarchy quattro"
+
+  cleanup_legacy_iwd_backend_config
 
   # Do not stop iwd or systemd-networkd mid-upgrade; disabling is enough and
   # avoids dropping a running Wi-Fi connection before the user can reboot into

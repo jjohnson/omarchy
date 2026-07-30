@@ -53,6 +53,50 @@ grep -F 'systemd-networkd.socket' "$upgrade_to_quattro" >/dev/null
 grep -F 'systemd-networkd-resolve-hook.socket' "$upgrade_to_quattro" >/dev/null
 pass "Omarchy 4 upgrade retires systemd-networkd for NetworkManager"
 
+eval "$(sed -n '/^legacy_iwd_backend_config()/,/^}/p' "$upgrade_to_quattro")"
+eval "$(sed -n '/^cleanup_legacy_iwd_backend_config()/,/^}/p' "$upgrade_to_quattro")"
+
+iwd_test_dir=$(mktemp -d)
+trap 'rm -rf "$iwd_test_dir"' EXIT
+iwd_config="$iwd_test_dir/iwd.conf"
+iwd_expected="$iwd_test_dir/expected.conf"
+
+as_root() {
+  "$@"
+}
+
+log() {
+  :
+}
+
+warn() {
+  :
+}
+
+pacman() {
+  return 1
+}
+
+backup_suffix=test
+OMARCHY_LEGACY_IWD_CONFIG="$iwd_config"
+
+printf '%s\n' '[device]' 'wifi.backend=iwd' >"$iwd_config"
+cp "$iwd_config" "$iwd_expected"
+cleanup_legacy_iwd_backend_config
+
+[[ ! -e $iwd_config ]] || fail "legacy iwd backend config is removed"
+iwd_backup="$iwd_config.omarchy-upgrade-to-quattro.$backup_suffix.bak"
+[[ -f $iwd_backup ]] || fail "legacy iwd backend config is backed up"
+cmp -s "$iwd_expected" "$iwd_backup" || fail "legacy iwd backend backup preserves content"
+
+rm -f "$iwd_backup"
+printf '%s\n' '[device]' 'wifi.backend=iwd' 'managed=0' >"$iwd_config"
+cleanup_legacy_iwd_backend_config
+
+[[ -f $iwd_config ]] || fail "custom iwd backend config is preserved"
+[[ ! -e $iwd_backup ]] || fail "custom iwd backend config is not replaced by a backup"
+pass "Omarchy 4 upgrade safely retires only the known legacy iwd backend config"
+
 grep -F 'omarchy-bar defaults' "$upgrade_to_quattro" >/dev/null
 pass "Omarchy 4 upgrade restores service-aware bar defaults"
 
