@@ -4,6 +4,93 @@ This log records the commands and meaningful results from the first Quattro
 AArch64 desktop milestone. Commands are run as the normal user unless a
 privileged command is explicitly shown.
 
+## 2026-07-30: Phase 6 ISO source integration
+
+The new Phase 6 clone reproduced the Phase 5 package, session, graphics,
+network, audio, and protected-boot hashes. The source repositories were clean
+at their pushed Phase 5 commits.
+
+Read the ISO architecture plan and all relevant profile, builder, bootloader,
+installer, package-list, and archiso source files:
+
+```bash
+sed -n '1,320p' plans/aarch64-support.md
+rg -n '_make_packages|_make_customize_airootfs|_make_boot_on_iso9660|vmlinuz' \
+  archiso/archiso/mkarchiso
+sed -n '1,220p' archiso/README.rst
+sed -n '1,220p' archiso/configs/releng/packages.x86_64
+sed -n '1,260p' builder/build-iso.sh
+sed -n '1,220p' configs/profiledef.sh
+rg -n 'linux-t2|BOOTX64|limine_x64|x86_64|linux-x64' \
+  bin builder configs
+```
+
+Inspected the actual Arch Linux ARM kernel and mkinitcpio contracts:
+
+```bash
+pacman -Ql linux-aarch64
+sed -n '1,320p' /usr/share/libalpm/scripts/mkinitcpio
+sed -n '1,160p' /etc/mkinitcpio.d/linux-aarch64.preset
+file /boot/Image
+mkinitcpio -k /boot/Image -M
+```
+
+Result: `linux-aarch64` installs `/boot/Image`; archiso only copies
+`/boot/vmlinuz-*`. The source fix is an ARM-only profile hook that stages the
+kernel and builds an archiso-specific initramfs.
+
+Validated package, bootloader, repository, and mirror inputs:
+
+```bash
+pacman -Si linux-aarch64 linux-aarch64-headers grub limine \
+  archinstall mkinitcpio-archiso
+file /usr/share/limine/BOOTAA64.EFI
+curl -L -sS -o /dev/null -w '%{http_code}' \
+  https://ca.us.mirror.archlinuxarm.org/aarch64/core/core.db
+curl -L -sS -o /dev/null -w '%{http_code}' \
+  https://pkgs.omarchy.org/edge/aarch64
+```
+
+The Arch Linux ARM mirror returned 200. The Omarchy AArch64 repository
+returned 404.
+
+Generated the ARM releng package list without building an ISO and resolved
+every entry against the actual repositories:
+
+```bash
+source builder/architecture.sh
+omarchy_iso_prepare_package_list aarch64 \
+  archiso/configs/releng/packages.x86_64 \
+  <temporary-directory>/packages.aarch64 \
+  builder/releng-aarch64-exclude.packages
+pacman -Si <each generated package>
+```
+
+Result: 116 of 116 packages resolve. The target bootstrap list maps to
+`linux-aarch64` and drops both x86 microcode packages.
+
+After source changes, ran:
+
+```bash
+bash -n <all changed Bash files>
+python -m py_compile <changed installer Python files>
+./test/architecture-test.sh
+./test/shell.d/pacman-config-test.sh
+./test/shell.d/mise-work-architecture-test.sh
+OMARCHY_PKGS_PATH=/home/jj/Projects/omarchy-pkgs-quattro-arm64 \
+OMARCHY_ISO_PATH=/home/jj/Projects/omarchy-iso-quattro-arm64 \
+  ./test/shell
+git diff --check
+```
+
+All listed checks passed. `./test/cli` still reports the pre-existing missing
+metadata summary on unchanged
+`omarchy-update-system-pkgs-when-conflicted`. `shellcheck` is not installed.
+
+No ISO build, package transaction, migration, or installed boot-stack change
+was performed. Full details are in
+[`phase6-iso-source-integration-2026-07-30.md`](phase6-iso-source-integration-2026-07-30.md).
+
 ## 2026-07-29: Prior-session baseline
 
 Read the complete validated 3.x UTM procedure before inspecting or changing the
