@@ -246,3 +246,43 @@ before any system-wide installation.
 The only source changes required for this batch were architecture declarations
 for the three native-source recipes that had been constrained to x86_64.
 Those changes are pushed in package-repository commit `74775e1`.
+
+## Phase 7 Fresh-Image Closure
+
+The ISO package-only audit expanded the scope from direct dev-package and
+base-manifest dependencies to every package requested by a fresh Quattro
+image:
+
+| Classification | Count |
+| --- | ---: |
+| Unique fresh-image package targets | 283 |
+| Available unchanged from Arch Linux ARM | 254 |
+| Local/provider runtime targets | 29 |
+| Build-only local recipes | 1 |
+| Genuine blockers | 0 |
+
+The local build map supplies these runtime targets:
+
+```text
+aether asdcontrol cliamp dotnet-runtime
+hyprland-preview-share-picker limine-mkinitcpio-hook limine-snapper-sync
+localsend mise obs-studio obsidian omacut omarchy-dev omarchy-keyring
+omarchy-nvim omarchy-settings-dev omawrite pinta
+python-terminaltexteffects quickshell-git tensaku tobi-try ttf-ia-writer
+ttf-jetbrains-mono-nerd-basic tzupdate ufw-docker xdg-terminal-exec
+yaru-icon-theme yay
+```
+
+Gradle is the sole build-only recipe. It is cached for the Limine helper
+builds and excluded from the runtime repository.
+
+The final package-only run built all mapped recipes and produced a
+1,121-package offline repository. A complete target transaction resolved to
+928 installed packages. Parsing the repository database proved that all 29
+runtime targets are satisfied by an exact name or `provides` entry. Inspection
+of all 37 local runtime archives found only `aarch64` and `any` packages.
+
+This closes the local-source package dependency blocker. The published
+Omarchy AArch64 repository still returns HTTP 404 and remains a production
+publishing requirement, but the first development ISO can now use the
+validated local closure.

@@ -4,6 +4,100 @@ This log records the commands and meaningful results from the first Quattro
 AArch64 desktop milestone. Commands are run as the normal user unless a
 privileged command is explicitly shown.
 
+## 2026-07-30: Phase 7 package-only closure
+
+The Phase 7 clone reproduced the Phase 5 installed-system state and the
+Phase 6 source checkpoints. All repositories began clean on their pushed
+`quattro-aarch64-utm` branches.
+
+Audited the complete fresh-image package input against synchronized Arch Linux
+ARM metadata:
+
+```bash
+./bin/omarchy-iso-make --arch aarch64 --packages-only \
+  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
+  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+```
+
+The audit found 283 unique targets: Arch Linux ARM resolves 254 unchanged and
+29 require a local recipe or provider. Added an exact 30-row build map: 29
+runtime targets plus build-only Gradle. The three runtime provider mappings
+are `dotnet-runtime -> dotnet-sdk-bin`, `mise -> mise-bin`, and
+`obsidian -> obsidian-appimage`.
+
+Repeated the same package-only command after each bounded retry fix. Long
+native builds exposed and resolved:
+
+```text
+Gradle split archives inaccessible to the temporary repository
+locale-dependent recipe fingerprints
+rust versus rustup build-tool conflicts
+same-version stale archives in pacman's host cache
+Git safe-directory rejection on the mounted Omarchy source
+```
+
+The final run built every mapped recipe, downloaded the signed Arch Linux ARM
+closure, indexed the offline repository, and exited zero:
+
+```text
+local runtime archives: 37
+offline archives:       1121
+offline DB entries:     1121
+target install:         928 packages
+Gradle in mirror:       absent
+```
+
+Validated the final repository and local artifacts:
+
+```bash
+bsdtar -tf \
+  ~/.cache/omarchy/iso_edge_aarch64/airootfs/var/cache/omarchy/mirror/offline/offline.db.tar.gz
+pacman -Qp <each locally built runtime archive>
+bsdtar -xOf <archive> .PKGINFO
+OMARCHY_PKGS_PATH=/home/jj/Projects/omarchy-pkgs-quattro-arm64 \
+  ./test/architecture-test.sh
+bash -n bin/omarchy-iso-make builder/architecture.sh \
+  builder/build-iso.sh builder/build-omarchy-packages.sh
+git diff --check
+```
+
+Database parsing proved 29/29 mapped target names resolve. All 37 local
+archives are `aarch64` or `any`. Inspected the dependency metadata and
+contents of `omarchy-dev`, `omarchy-settings-dev`, `omarchy-nvim`, and
+`quickshell-git`.
+
+`omarchy-nvim` logged a non-fatal failed optional Mason `stylua` download.
+The package completed with the cached plugin tree and ARM64 `shfmt`; its
+recipe intentionally permits best-effort headless synchronization. Record
+this for first-boot Neovim acceptance rather than treating it as a closure
+failure.
+
+Rechecked the proof host after the build:
+
+```bash
+pacman -Q
+pacman -Qqe
+pacman -Qm
+pacman -Qdtq
+sha256sum /boot/initramfs-linux.img /boot/limine.conf \
+  /etc/mkinitcpio.conf /etc/mkinitcpio.d/linux-aarch64.preset
+systemctl --failed --no-legend
+systemctl --user --failed --no-legend
+omarchy-shell shell ping
+hyprctl configerrors
+glxinfo -B
+nmcli -t -f STATE general
+wpctl status
+```
+
+The host remains at 979 installed packages, 199 explicit packages, 37 foreign
+packages, and zero orphans. Quickshell, Hyprland, NetworkManager, PipeWire,
+and direct VirGL are healthy; all protected hashes remain exact. No ISO,
+host package transaction, migration, or boot-stack change occurred.
+
+Full details are in
+[`phase7-package-closure-2026-07-30.md`](phase7-package-closure-2026-07-30.md).
+
 ## 2026-07-30: Phase 6 ISO source integration
 
 The new Phase 6 clone reproduced the Phase 5 package, session, graphics,

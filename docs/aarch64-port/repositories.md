@@ -49,11 +49,30 @@ commits:
 - `d0f3fdc` (`Use native mbedTLS for ARM OBS`) replaces the broken Arch Linux
   ARM `mbedtls3` layout with the working native `mbedtls` package.
 
+Phase 7 added two more pushed package-repository commits:
+
+- `5ba1876` (`Add ARM64 package providers`) adds the pinned `mise-bin` recipe
+  and makes the `tzupdate` ARM source fix persistent.
+- `7f7cbb0` (`Bootstrap ARM builds without published repo`) prevents the ARM
+  package-builder bootstrap from depending on the missing published Omarchy
+  repository.
+
 The current package-repository branch tip is
-`d0f3fdc804540fedae054751e89124f04f2fb707` and is pushed to the personal
+`7f7cbb0f10c50ab60b801e283f778727bf55f229` and is pushed to the personal
 origin.
 
 The Omarchy branch contains source checkpoint
 `8eb138c19fddb1c42b020047052e6c9674e135a9`, which adds the tested
 architecture-aware base-package resolver. It is pushed to the personal
 origin.
+
+The Phase 7 package closure used Omarchy source commit
+`b08e94784c50616b15ad55a861e01d0af7e00d2f`.
+
+The ISO branch now contains the complete package-only AArch64 closure builder,
+its retry-safe cache fixes, and the updated architecture plan. Its pushed tip
+is:
+
+```text
+ac984c1d06bc39dc7aebaaa8c0b9f1641ccc6141
+```
