@@ -498,3 +498,71 @@ overwritten by the settings package scriptlet were placed under:
 ```text
 /home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-install-system-2026-07-29/
 ```
+
+## 2026-07-30: Persistent session cutover preparation
+
+Verified the post-checkpoint reboot, exact boot hashes, installed packages,
+remote Git branch parity, active session environment, and current UI services.
+The system returned to the expected 3.x login environment with no failed
+units.
+
+Archived the user state that the cutover could affect:
+
+```bash
+tar -C /home/jj -cpf \
+  /home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-persistent-cutover-2026-07-30-002942.tar \
+  .bashrc .bash_profile .config/hypr .config/uwsm .config/omarchy \
+  .config/autostart .config/systemd/user .local/state/omarchy
+```
+
+The archive SHA-256 is:
+
+```text
+a12466e3e292a4f3b2b9ddf6f51b1c6b2ca78f33b408a02f99793cbc5198f2c5
+```
+
+Suppressed live Hyprland autoreload, installed the previously absent Quattro
+Lua entrypoints, and verified the new config explicitly:
+
+```bash
+hyprctl keyword misc:disable_autoreload true
+env OMARCHY_PATH=/usr/share/omarchy PATH=/usr/bin:/bin \
+  omarchy-refresh-hyprland
+env HOME=/home/jj OMARCHY_PATH=/usr/share/omarchy PATH=/usr/bin:/bin \
+  Hyprland --verify-config --config /home/jj/.config/hypr/hyprland.lua
+hyprctl keyword misc:disable_autoreload false
+```
+
+Result: `config ok`. No existing Lua user file was replaced, and the legacy
+`*.conf` tree was preserved.
+
+Moved the exact known-default legacy UWSM environment, Walker autostart, and
+retired user services to:
+
+```text
+~/.local/state/omarchy/cutover-backups/2026-07-30-002942/
+```
+
+Updated `.bashrc` to load the package-backed Quattro runtime while preserving
+the VM-specific alias. Enabled the package-backed internal-monitor recovery
+and sleep-lock units. No legacy package was removed before the persistent
+login test.
+
+Started the Quattro shell with explicit live-session environment overrides,
+waited for IPC, stopped the exact legacy UI process IDs, and restarted the
+shell after handoff:
+
+```bash
+uwsm-app -s b -t service \
+  -u omarchy-quattro-shell-runtime.service \
+  -d "Quattro shell ARM64 persistent-cutover validation" \
+  -p "Environment=OMARCHY_PATH=/usr/share/omarchy" \
+  -p "Environment=PATH=/usr/bin:/bin" \
+  -- quickshell -n -p /usr/share/omarchy/shell
+systemctl --user restart omarchy-quattro-shell-runtime.service
+```
+
+Re-ran menu, keyboard terminal launch, notifications, workspaces, VirGL,
+software-rendering override, audio, clipboard, SPICE, failed-unit, visual, and
+boot-hash checks. The detailed result and rollback instructions are in
+[`persistent-cutover-2026-07-30.md`](persistent-cutover-2026-07-30.md).

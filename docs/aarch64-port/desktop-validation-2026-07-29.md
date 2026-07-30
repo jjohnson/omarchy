@@ -4,6 +4,9 @@ Validated on the existing Archboot AArch64 UTM guest on 2026-07-29. The
 Quattro shell is running from the locally built packages while the active
 Hyprland process remains the known-good session that was already running.
 
+The next-login Lua/UWSM cutover prepared on 2026-07-30 is recorded in
+[`persistent-cutover-2026-07-30.md`](persistent-cutover-2026-07-30.md).
+
 ## Outcome
 
 The first desktop milestone passed:
