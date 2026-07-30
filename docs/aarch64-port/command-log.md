@@ -1338,3 +1338,85 @@ configuration errors, NetworkManager connectivity, direct VirGL on the Apple
 M4 Pro, zero failed system/user units, and exact protected hashes. No
 migration, finalization, kernel, initramfs, Limine, UEFI, partition, or
 filesystem action was run.
+
+## 2026-07-30: Phase 4 Retina display and legacy cleanup
+
+The completed Phase 3 VM was duplicated as:
+
+```text
+Quattro-ARM64-Phase-4-Legacy-Cleanup-Working-2026-07-30
+```
+
+After UTM Retina mode exposed a `3006x1818@60` display at scale 1,
+`~/.config/hypr/monitors.lua` was backed up and its scale override changed
+from `auto` to `2`. The active mode remains dynamic rather than hard-coded.
+The user completed a host-window resize acceptance check at
+`2826x1818@60`, scale 2, and the requested window size stayed put.
+
+Audited installed packages by exact name against
+`remove_retired_default_packages()` in `bin/omarchy-upgrade-to-quattro`.
+Before recursive removal, recorded package reasons and marked these current
+base providers explicit, matching the normal Quattro upgrade path:
+
+```text
+bluez bluez-tools fakeroot libsecret pacman-contrib wireplumber
+```
+
+Created a complete rollback bundle at:
+
+```text
+/home/jj/.local/state/omarchy/phase4-retired-ui-backup-20260730-044500/
+```
+
+The first inspected transaction removed 19 requested retired UI packages and
+11 now-unused dependencies:
+
+```text
+walker elephant elephant-bluetooth elephant-calc elephant-clipboard
+elephant-desktopapplications elephant-files elephant-menus
+elephant-providerlist elephant-runner elephant-symbols elephant-todo
+elephant-unicode elephant-websearch waybar mako swaybg swayosd polkit-gnome
+libmpdclient jsoncpp gtkmm3 pangomm gtk-layer-shell gpsd pps-tools cairomm
+atkmm glibmm libsigc++
+```
+
+Inactive UI configurations and the unowned Walker pacman hook were moved into
+the rollback bundle. Quickshell's menu and notification surfaces passed
+visual checks afterward.
+
+The second inspected transaction removed ten requested retired utilities and
+five now-unused dependencies:
+
+```text
+blueberry bluetui gnome-bluetooth hypridle hyprlock playerctl satty
+wayfreeze-git wf-recorder wiremix xapp xapp-symbolic-icons libgnomekbd
+libxklavier python-setproctitle
+```
+
+The inactive Wiremix configuration and launcher were moved into the batch
+rollback directory. `omarchy capture screenshot fullscreen save` continued
+to work after the old capture utilities were gone.
+
+The two transactions removed 45 packages and freed 470.38 MiB. Pre-reboot
+validation found 982 installed packages, 201 explicit packages, 37 foreign
+packages, zero orphans, and zero failed system or user units. All 143
+architecture-resolved manifest entries remain satisfied. Quickshell IPC,
+empty Hyprland errors, NetworkManager, audio, direct VirGL, dynamic Retina
+resizing, 46 pending migrations, and the four protected hashes all remain
+healthy.
+
+The only exact canonical retired package names still installed are:
+
+```text
+claude-code
+dust
+impala
+iwd
+localsend-bin
+opencode
+```
+
+The four applications are retained to preserve user choices. `impala` and
+`iwd` are deferred network rollback assets. The active `greetd` login manager
+is protected. A controlled reboot remains before Phase 4 can be declared
+complete.
