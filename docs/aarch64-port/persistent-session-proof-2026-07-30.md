@@ -189,6 +189,7 @@ persistent Hyprland/Quickshell desktop milestone.
 | Clipboard | Token round-trip passed and prior text restored | Pass |
 | Removable media runtime | `udiskie` installed, verified, and active | Pass |
 | SPICE | System and user agents active; repeated host resize modes held | Pass |
+| Resize helper persistence | Package-owned helper returned through normal post-reboot autostart | Pass |
 | Unit health | Zero failed system and user units | Pass |
 
 With Lua configuration active, the legacy command:
@@ -283,11 +284,55 @@ remained empty, Quickshell IPC returned `ok`, and VirGL remained
 The implementation and tests were pushed on `quattro-aarch64-utm` in commit
 `227b6e0ec245ecdf0d8175aa05be5e03d0e36b61`.
 
+### Post-Reboot Persistence
+
+After a powered-off safety checkpoint, the original VM booted again at
+`2026-07-30 01:48:02 EDT`. Normal Quattro autostart produced exactly one
+package-owned helper:
+
+```text
+Hyprland PID 1104
+resize helper PID 1183, parent 1104
+/bin/bash /usr/share/omarchy/bin/omarchy-hyprland-spice-resize
+```
+
+The `/usr/share/omarchy/bin` command is the package symlink to `/usr/bin`.
+No checkout path or temporary service was involved. Before the manual test,
+the connector and Hyprland already agreed at `1376x909`.
+
+The final post-reboot trace captured two host size changes:
+
+```text
+01:49:56.604 kernel=800x600  hypr=1376x909
+01:49:56.713 kernel=800x600  hypr=800x600
+01:50:19.340 kernel=1512x909 hypr=1512x909
+```
+
+The helper adopted the first requested mode in approximately 109 ms. The
+second was already synchronized by the next 100 ms sample. Both sizes stayed
+put.
+
+`spice-vdagent` still logged its known XRandR failure and
+`Restoring previous config` message during the first transition. That warning
+describes its XWayland compatibility path, not the resulting DRM/Hyprland
+state: the connector did not revert, the UTM window did not snap back, and the
+final connector and compositor state remained `1512x909@60`.
+
+After the final resize:
+
+- Hyprland still loaded `~/.config/hypr/hyprland.lua` with no errors;
+- Quickshell remained a direct Hyprland child and IPC returned `ok`;
+- both SPICE services remained active;
+- VirGL remained direct on Apple M4 Pro with OpenGL 4.1;
+- no software-rendering override was present;
+- system and user failed-unit counts remained zero;
+- all three development repositories remained clean.
+
 ## Boot Integrity
 
 The protected hashes remained exact after the proof boot, package
-installations, shell restart, dynamic-resize package upgrade, and acceptance
-checks:
+installations, shell restart, dynamic-resize package upgrade, post-upgrade
+reboot, and acceptance checks:
 
 ```text
 2662962bab816958bad80f3c24e275f2e306b984bdf1f81dc235342382c8048f  /boot/initramfs-linux.img

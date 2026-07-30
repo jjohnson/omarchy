@@ -719,3 +719,68 @@ add658562939b9abb73bf6fe7865fb177cd8fbfa5a73479467cf3469da57ac44  /boot/limine.c
 6edf91b6ee62aff521de9666d6f8c790be086ecec48352f2dd580d66a6831dd3  /etc/mkinitcpio.conf
 a0bf23d62d7d74bfa597e38af7cc841837ba4a353ed8f8b10b5dd3a69dab5814  /etc/mkinitcpio.d/linux-aarch64.preset
 ```
+
+## 2026-07-30: Resize-helper persistence boot
+
+After the powered-off pre-reboot safety checkpoint, booted the original VM and
+verified the complete package-backed session again. The boot began at
+`2026-07-30 01:48:02 EDT`.
+
+Normal Quattro autostart launched exactly one resize helper as a direct child
+of Hyprland:
+
+```text
+Hyprland PID 1104
+resize helper PID 1183, parent 1104
+/bin/bash /usr/share/omarchy/bin/omarchy-hyprland-spice-resize
+```
+
+The running command came from the packaged `/usr/share/omarchy/bin` symlink,
+not the source checkout or a temporary service. The matching UWSM scope was
+active.
+
+Rechecked:
+
+```bash
+uname -a
+uptime -s
+pacman -Q omarchy-dev omarchy-settings-dev udiskie hyprland \
+  quickshell-git spice-vdagent
+systemctl --user show-environment
+hyprctl configerrors
+omarchy-shell shell ping
+glxinfo -B
+systemctl --failed --no-legend
+systemctl --user --failed --no-legend
+```
+
+Hyprland again selected `~/.config/hypr/hyprland.lua`, Quickshell owned
+notifications and returned `ok`, VirGL remained direct, both SPICE services
+were active, and there were zero failed units.
+
+Armed a 100 ms connector/compositor trace and performed the final manual UTM
+resize:
+
+```text
+01:49:56.604 kernel=800x600  hypr=1376x909
+01:49:56.713 kernel=800x600  hypr=800x600
+01:50:19.340 kernel=1512x909 hypr=1512x909
+```
+
+The installed helper synchronized the first transition in approximately
+109 ms; the second was synchronized by the next sample. The final size stayed
+at `1512x909`.
+
+`spice-vdagent` still emitted its known XRandR failure and
+`Restoring previous config` warning. The warning no longer described the
+resulting display state: neither the connector nor Hyprland reverted, and the
+UTM window remained at the requested size.
+
+The protected hashes remained exact after this second proof boot and resize:
+
+```text
+2662962bab816958bad80f3c24e275f2e306b984bdf1f81dc235342382c8048f  /boot/initramfs-linux.img
+add658562939b9abb73bf6fe7865fb177cd8fbfa5a73479467cf3469da57ac44  /boot/limine.conf
+6edf91b6ee62aff521de9666d6f8c790be086ecec48352f2dd580d66a6831dd3  /etc/mkinitcpio.conf
+a0bf23d62d7d74bfa597e38af7cc841837ba4a353ed8f8b10b5dd3a69dab5814  /etc/mkinitcpio.d/linux-aarch64.preset
+```
