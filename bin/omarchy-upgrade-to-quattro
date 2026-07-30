@@ -558,6 +558,8 @@ install_omarchy_quattro_packages() {
     pacman-contrib
   )
   local base_packages=()
+  local base_package_manifest=/usr/share/omarchy/install/omarchy-base.packages
+  local base_package_resolver=/usr/share/omarchy/bin/omarchy-pkg-base-list
 
   log "Upgrading system packages and installing Omarchy quattro packages"
   (( use_dev_packages )) && log "Using dev packages [omarchy-dev / omarchy-settings-dev]"
@@ -567,15 +569,21 @@ install_omarchy_quattro_packages() {
   as_root env OMARCHY_UPDATE_PACMAN=1 pacman -Syu --needed --noconfirm --ask 4 --overwrite='*' "${core_packages[@]}"
   mark_packages_explicit "${core_packages[@]}"
 
-  if [[ -f /usr/share/omarchy/install/omarchy-base.packages ]]; then
+  if [[ -f $base_package_manifest ]]; then
     log "Installing Omarchy quattro default package set"
-    mapfile -t base_packages < <(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' /usr/share/omarchy/install/omarchy-base.packages)
+    if [[ -x $base_package_resolver ]]; then
+      mapfile -t base_packages < <("$base_package_resolver" "$(uname -m)" "$base_package_manifest")
+    else
+      warn "$base_package_resolver was not found; using the default package list without architecture substitutions."
+      mapfile -t base_packages < <(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$base_package_manifest")
+    fi
+
     if (( ${#base_packages[@]} )); then
       as_root pacman -S --needed --noconfirm --ask 4 --overwrite='*' "${base_packages[@]}"
       mark_packages_explicit "${base_packages[@]}"
     fi
   else
-    warn "/usr/share/omarchy/install/omarchy-base.packages was not found; skipping default package set install."
+    warn "$base_package_manifest was not found; skipping default package set install."
   fi
 
   # Archinstall installs the audio application during fresh ISO installs, so
