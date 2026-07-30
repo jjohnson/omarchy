@@ -192,3 +192,137 @@ curl -L -sS -o /dev/null -w '%{http_code}' \
 
 Both returned HTTP 404. The complete categorized result is in
 [`dependency-audit.md`](dependency-audit.md).
+
+## 2026-07-29: Native AArch64 package builds
+
+The first clean-container build exposed a transitive build dependency that was
+not visible in the direct dev-package matrix:
+
+```bash
+./bin/repo build --arch aarch64 --package \
+  omarchy-keyring omarchy-settings-dev limine-snapper-sync \
+  ttf-jetbrains-mono-nerd-basic quickshell-git omarchy-dev
+```
+
+`limine-mkinitcpio-hook` and `limine-snapper-sync` require `gradle`, which is
+not published in the Arch Linux ARM repositories. The AUR recipe was inspected
+and rejected because it is still Gradle 2.6. The current official Arch package
+recipe was cloned and pinned:
+
+```bash
+git clone \
+  https://gitlab.archlinux.org/archlinux/packaging/packages/gradle.git \
+  /home/jj/Projects/gradle-arch-package-arm64
+git -C /home/jj/Projects/gradle-arch-package-arm64 rev-parse HEAD
+```
+
+Result:
+
+```text
+65fdb1b6b29b8966bb340a2c919e131cded3b53a
+```
+
+The recipe was added to the package repository as an AArch64-only local
+package and committed atomically:
+
+```bash
+git commit -m "Build Gradle for aarch64"
+```
+
+Package repository commit: `c2a36d3`.
+
+The bootstrap and both Limine packages then built in dependency order:
+
+```bash
+./bin/repo build --arch aarch64 --package \
+  gradle limine-mkinitcpio-hook limine-snapper-sync
+```
+
+Results:
+
+- Gradle 9.6.1 completed 3,342 source-build tasks natively in 10m57s.
+- `limine-mkinitcpio-hook 1.37.1-1` built a 64-bit AArch64 GraalVM image.
+- `limine-snapper-sync 1.31.0-1` built a 64-bit AArch64 GraalVM image.
+- All three packages completed successfully.
+
+The Omarchy dev packages were built from the exact local development checkout,
+not the moving upstream `quattro` branch:
+
+```bash
+cd /home/jj/Projects/omarchy-pkgs-quattro-arm64/pkgbuilds/omarchy-settings-dev
+OMARCHY_SRC=/home/jj/Projects/omarchy-quattro-arm64 \
+  makepkg --cleanbuild --force --nodeps --noconfirm
+
+cd /home/jj/Projects/omarchy-pkgs-quattro-arm64/pkgbuilds/omarchy-dev
+OMARCHY_SRC=/home/jj/Projects/omarchy-quattro-arm64 \
+  makepkg --cleanbuild --force --nodeps --noconfirm
+```
+
+Both packages identify source SHA
+`4f61400b949bf0d0ee9375cce38ababe95b4f7a8` in their version:
+
+```text
+omarchy-settings-dev 4.0.0.r1466.g4f61400-1
+omarchy-dev          4.0.0.r1466.g4f61400-1
+```
+
+The settings build reports three pre-existing backup-array warnings for paths
+that are no longer present in the package. They do not affect the produced
+payload:
+
+```text
+etc/systemd/zram-generator.conf
+etc/udev/rules.d/99-omarchy-power-profile.rules
+etc/udev/rules.d/99-omarchy-wifi-powersave.rules
+```
+
+The final keyring, font, and pinned Quickshell batch was built with:
+
+```bash
+./bin/repo build --arch aarch64 --package \
+  omarchy-keyring ttf-jetbrains-mono-nerd-basic quickshell-git
+```
+
+All three succeeded. Quickshell compiled all 1,321 targets natively and
+produced `quickshell-git 0.3.0.r18.g10b439f-3` for AArch64.
+
+## 2026-07-29: Package inspection and transaction resolution
+
+The local repository database contains these runtime candidates:
+
+```text
+limine-mkinitcpio-hook 1.37.1-1 aarch64
+limine-snapper-sync 1.31.0-1 aarch64
+omarchy-dev 4.0.0.r1466.g4f61400-1 any
+omarchy-keyring 20251027-1 any
+omarchy-settings-dev 4.0.0.r1466.g4f61400-1 any
+quickshell-git 0.3.0.r18.g10b439f-3 aarch64
+ttf-jetbrains-mono-nerd-basic 3.4.0-1 any
+```
+
+Gradle 9.6.1-1.1 is also retained in the local repository as a build-only
+AArch64 package.
+
+Inspection commands:
+
+```bash
+bsdtar -xOf <package> .PKGINFO
+bsdtar -tf <package>
+file <extracted ELF>
+readelf -h <extracted ELF>
+ldd <extracted ELF>
+pacman -U --noconfirm --print-format '%r\t%n\t%v\t%l' <runtime packages>
+```
+
+Quickshell, `limine-entry-tool`, and `limine-snapper-sync` are all ELF64
+little-endian AArch64 PIE executables. The dry transaction selected the six
+local runtime packages and four official Arch Linux ARM dependencies:
+`libdwarf`, `cpptrace`, `vulkan-headers`, and `pacman-contrib`.
+
+Before privileged installation, recoverable copies of the current initramfs,
+Limine configuration, mkinitcpio configuration and preset, and every file
+overwritten by the settings package scriptlet were placed under:
+
+```text
+/home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-install-system-2026-07-29/
+```

@@ -24,7 +24,7 @@ this is generic QEMU UEFI hardware.
 | --- | --- |
 | Available unchanged | All 21 ordinary runtime/build dependency names |
 | Available under another package name | No direct dev-package dependency; kernel mapping is documented below |
-| Buildable from `omarchy-pkgs`/AUR | 5 package names |
+| Buildable from `omarchy-pkgs`/AUR | 6 package names, including the transitive Gradle build tool |
 | x86-only and replaceable | None among hard dependencies |
 | x86-only and optional | None among hard dependencies |
 | Genuine blocker | None for local package builds |
@@ -66,6 +66,26 @@ built and installed locally.
 | `omarchy-settings-dev` | `hicolor-icon-theme` | runtime | `extra`, 0.18-1, `any` | Available unchanged |
 | `omarchy-settings-dev` | `plymouth` | runtime | `extra`, 26.134.222-2, `aarch64` | Available unchanged |
 | `omarchy-settings-dev` | `imagemagick` | build | `extra`, 7.1.2.29-1, `aarch64` | Available unchanged |
+| Limine helper packages | `gradle` | build | Missing from Arch Linux ARM; official Arch packaging is `any` and was locally constrained to `aarch64` in `omarchy-pkgs` | Buildable from `omarchy-pkgs`/AUR |
+
+## Gradle Build-Tool Gap
+
+The direct runtime matrix has no blocker, but the first clean-container build
+found one transitive omission: Arch Linux ARM does not publish `gradle`.
+Both `limine-mkinitcpio-hook` and `limine-snapper-sync` declare it as a build
+dependency.
+
+The AUR `gradle` recipe is not usable: its pinned state is version 2.6. The
+current official Arch packaging repository was therefore cloned and pinned at
+commit `65fdb1b6b29b8966bb340a2c919e131cded3b53a`. Its architecture-independent
+9.6.1 recipe was added to `omarchy-pkgs` as an AArch64-only local package, so
+x86_64 builds continue using the official Arch repository package.
+
+The clean AArch64 container resolved all of Gradle's build requirements from
+Arch Linux ARM, including JDK 11, JDK 17, JDK 21, Groovy, AsciiDoc, and XML
+tools. Gradle completed 3,342 source-build tasks natively and then built both
+Limine helper packages as AArch64 GraalVM native images. This closes the
+transitive package-build gap; it is not a desktop runtime dependency.
 
 ## Quickshell Selection
 
@@ -118,15 +138,28 @@ experiment and matches the current `omarchy-pkgs` version. All other ordinary
 hard dependencies are already installed except `pacman-contrib`, which is
 available unchanged from Arch Linux ARM `extra`.
 
-The build set for the milestone is therefore:
+The final local build set for the milestone is:
 
-1. `omarchy-keyring`
-2. `omarchy-settings-dev`
-3. `limine-snapper-sync`
-4. `ttf-jetbrains-mono-nerd-basic`
-5. `quickshell-git`
-6. `omarchy-dev`
+1. `gradle` 9.6.1-1.1, used only inside the build container
+2. `omarchy-keyring`
+3. `omarchy-settings-dev`
+4. `limine-mkinitcpio-hook`
+5. `limine-snapper-sync`
+6. `ttf-jetbrains-mono-nerd-basic`
+7. `quickshell-git`
+8. `omarchy-dev`
 
-`limine-mkinitcpio-hook` will be rebuilt only if package inspection finds that
-the installed artifact is insufficient or differs materially from the pinned
-PKGBUILD.
+The two Omarchy dev packages were built from local source SHA
+`4f61400b949bf0d0ee9375cce38ababe95b4f7a8`, rather than the moving upstream
+branch tip. The resulting version is `4.0.0.r1466.g4f61400-1`.
+
+Package inspection confirmed that Quickshell and both Limine native images are
+ELF64 little-endian AArch64 PIE executables. A dry `pacman -U` transaction
+resolved the remaining runtime packages from Arch Linux ARM:
+
+```text
+libdwarf 1:2.3.2-1
+cpptrace 1.0.4-2
+vulkan-headers 1:1.4.350.1-1
+pacman-contrib 1.13.1-1
+```

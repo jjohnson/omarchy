@@ -21,3 +21,9 @@ recorded upstream commits.
 The Omarchy repository contains a root `AGENTS.md`, which was read completely
 before editing. Neither the package repository nor the ISO repository contains
 an `AGENTS.md` at its recorded commit.
+
+The package repository development branch now contains the atomic commit
+`c2a36d3` (`Build Gradle for aarch64`). That source change adds the official
+Arch Gradle 9.6.1 packaging recipe, pinned to Arch packaging commit
+`65fdb1b6b29b8966bb340a2c919e131cded3b53a`, and constrains the locally rebuilt
+package to AArch64.
