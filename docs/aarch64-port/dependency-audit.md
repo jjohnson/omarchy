@@ -175,10 +175,51 @@ Two non-hard utilities needed by acceptance were absent from the 3.x host:
 | `inotify-tools` | third-party plugin hot-reload watcher | `extra/aarch64`, installed unchanged |
 | `wtype` | keyboard-driven desktop acceptance | `extra/aarch64`, installed unchanged |
 
-The host also uses `iwd`, while the Quattro default set uses NetworkManager.
-Both NetworkManager and the BlueZ packages are available unchanged for
-AArch64, but they were not installed or enabled because switching a working
-network stack and adding hardware services were not required to launch the
-desktop. This produces expected network-backend and BlueZ warnings in the
-Quickshell log; it is an existing-host integration difference, not an
-architecture or package-build blocker.
+At the initial desktop milestone, the host still used `iwd` and
+`systemd-networkd`, while the Quattro default set uses NetworkManager. Both
+NetworkManager and the BlueZ packages were available unchanged for AArch64,
+but they were not installed or enabled because switching a working network
+stack was not required to launch the desktop. That historical difference
+produced expected network-backend warnings in the first Quickshell log; it was
+an existing-host integration difference, not an architecture or package-build
+blocker.
+
+## Quattro Base Manifest Follow-Up
+
+The Phase 2 provider-aware audit checked all 143 non-comment entries in
+`install/omarchy-base.packages` with one `pacman -T` transaction. Installed
+packages and `provides` entries satisfied 122 names. The remaining 21 are:
+
+| Package | Current AArch64 evidence | Classification |
+| --- | --- | --- |
+| `asdcontrol` | Omarchy recipe is `x86_64`; this UTM VM has no USB Apple display | x86-only and optional here |
+| `bluez-utils` | `extra`, 5.87-2, `aarch64` | Available unchanged |
+| `cliamp` | Omarchy recipe declares `aarch64` | Buildable from `omarchy-pkgs` |
+| `dotnet-runtime` | Absent from Arch Linux ARM; AUR `dotnet-runtime-bin` declares `aarch64` and provides the name | Available under another package name |
+| `dua-cli` | `extra`, 2.39.0-1, `aarch64` | Available unchanged |
+| `foot` | `extra`, 1.27.0-1, `aarch64` | Available unchanged |
+| `gpu-screen-recorder` | `extra`, 5.15.3-1, `aarch64` | Available unchanged |
+| `hyprland-preview-share-picker` | Rust source recipe is currently constrained to `x86_64` | Build candidate; needs native proof |
+| `networkmanager` | `extra`, 1.58.0-1, `aarch64`; installed and live-tested | Available unchanged |
+| `lua51` | `extra`, 5.1.5-13, `aarch64` | Available unchanged |
+| `moonlight-qt` | `extra`, 6.1.0-6, `aarch64` | Available unchanged |
+| `mpv-mpris` | `extra`, 1.2-1, `aarch64` | Available unchanged |
+| `obs-studio` | Official Arch package is `x86_64`; upstream is source available | x86-only and optional; ARM recipe work |
+| `obsidian` | Arch package name is absent; upstream publishes an ARM64 Linux AppImage | Available through another packaging route |
+| `omacut` | Omarchy recipe declares `aarch64` | Buildable from `omarchy-pkgs` |
+| `omawrite` | Omarchy recipe declares `aarch64` | Buildable from `omarchy-pkgs` |
+| `pinta` | Recipe is `x86_64` and hard-codes `linux-x64`; ARM64 .NET is available from AUR | Optional app requiring source/recipe changes |
+| `qemu-user-static-binfmt` | Exact static package is absent; `qemu-user-binfmt` 11.0.2-4 is in `extra/aarch64` | Available under another package name for normal binfmt use |
+| `tensaku` | Rust source recipe is currently constrained to `x86_64` | Build candidate; needs native proof |
+| `tobi-try` | Omarchy recipe declares `aarch64` | Buildable from `omarchy-pkgs` |
+| `yt-dlp` | `extra`, 2025.12.08-2, `any` | Available unchanged |
+
+This is an availability audit, not a build claim for recipes still marked as
+candidates. There is no new blocker for the Hyprland/Quickshell desktop or the
+NetworkManager transition. Full default-application parity still requires
+native builds for the two Rust candidates, an ARM64 Pinta recipe, decisions
+for the optional Apple-display and OBS packages, and confirmation that dynamic
+`qemu-user-binfmt` is sufficient for the intended ISO build workflows.
+
+The NetworkManager transition and visual panel proof are recorded in
+[`phase2-networkmanager-2026-07-30.md`](phase2-networkmanager-2026-07-30.md).

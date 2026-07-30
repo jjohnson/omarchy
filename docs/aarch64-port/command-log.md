@@ -784,3 +784,164 @@ add658562939b9abb73bf6fe7865fb177cd8fbfa5a73479467cf3469da57ac44  /boot/limine.c
 6edf91b6ee62aff521de9666d6f8c790be086ecec48352f2dd580d66a6831dd3  /etc/mkinitcpio.conf
 a0bf23d62d7d74bfa597e38af7cc841837ba4a353ed8f8b10b5dd3a69dab5814  /etc/mkinitcpio.d/linux-aarch64.preset
 ```
+
+## 2026-07-30: Phase 2 working-clone audit
+
+The powered-off gold VM was duplicated as:
+
+```text
+Quattro-ARM64-Phase-2-Working-2026-07-30
+```
+
+The clone booted at `2026-07-30 02:06:16 EDT`. Repeated the package-backed
+desktop, repository, graphics, service, display, and protected-hash checks.
+The clone exactly inherited the gold state.
+
+Inspected the current network stack:
+
+```bash
+ip -brief link
+ip -brief address
+ip route
+networkctl status enp0s1
+resolvectl status enp0s1
+systemctl is-enabled systemd-networkd.service systemd-resolved.service \
+  iwd.service NetworkManager.service
+systemctl is-active systemd-networkd.service systemd-resolved.service \
+  iwd.service NetworkManager.service
+```
+
+Result: Archboot's
+`/etc/systemd/network/enp0s1-ethernet.network` supplied DHCP through active
+networkd; systemd-resolved supplied DNS; iwd was active; NetworkManager was
+not installed.
+
+Read the complete NetworkManager migration and fresh-install service setup:
+
+```bash
+sed -n '1,280p' migrations/1782002156.sh
+sed -n '1,260p' install/hardware/network.sh
+sed -n '1,220p' install/config/enable-services.sh
+sed -n '1,360p' bin/omarchy-migrate
+```
+
+The migration runner has no supported single-migration mode. The complete
+46-item queue was therefore left pending. Migrations `1784476564.sh`,
+`1784917531.sh`, and `1785273276.sh` were explicitly excluded because they can
+modify the initramfs or Limine-managed boot image.
+
+Audited the full 143-entry base manifest with a provider-aware `pacman -T`
+transaction. Installed packages and providers satisfy 122 entries. Of the 21
+remaining names, nine are available unchanged from Arch Linux ARM, eight have
+Omarchy recipes, three have direct name or upstream packaging alternatives,
+and the remaining optional OBS application needs ARM recipe work. The
+per-package matrix is in `dependency-audit.md`.
+
+## 2026-07-30: NetworkManager recovery preparation
+
+Archived the exact pre-cutover configuration and unit symlinks:
+
+```text
+/home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/system-network-state.tar
+SHA-256: 2aa6f88a1eccfde208a0050046c5f7b758a3b16428a65ed2be2878ee54e2e5ec
+```
+
+Created and syntax-checked the root rollback command:
+
+```text
+/home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/rollback-to-networkd
+SHA-256: 0bfd3385d18d58064b6d5f370af1fa232e429ca24b2d945b5b20642b386e9c99
+```
+
+The rollback can be invoked from a local terminal or TTY with:
+
+```bash
+pkexec \
+  /home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/rollback-to-networkd
+```
+
+Updated `~/utm/QUATTRO-ARM64-RECOVERY-PROMPT.md` with the working clone,
+archive, rollback command, and migration exclusions before changing a system
+package or service.
+
+## 2026-07-30: Controlled NetworkManager cutover
+
+Inspected the signed transaction, then installed NetworkManager without
+enabling it:
+
+```bash
+pacman -Sp --print-format '%n %v %a %l' networkmanager
+pkexec pacman -S --noconfirm --needed networkmanager
+```
+
+The 12-package transaction came entirely from Arch Linux ARM `core` and
+`extra`. `pacman -Qk` reported zero missing files for NetworkManager, libnm,
+and wpa_supplicant. Networkd remained active and connectivity remained healthy
+after package installation.
+
+Started NetworkManager alongside networkd:
+
+```bash
+pkexec systemctl enable --now NetworkManager.service
+nmcli general status
+nmcli -f DEVICE,TYPE,STATE,CONNECTION device status
+nmcli -f GENERAL,IP4,IP6 device show enp0s1
+```
+
+NetworkManager detected `virtio_net`, created `Wired connection 1`, and
+obtained `192.168.64.4/24` while networkd temporarily retained
+`192.168.64.3/24`.
+
+The first transition used a three-minute systemd rollback timer. NetworkManager
+remained healthy, but the timer expired before the next validation turn and
+correctly restored networkd. The journal proves that this was the scheduled
+rollback, not a service failure.
+
+Repeated the transition with the validated atomic command:
+
+```text
+/home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/cutover-to-networkmanager
+SHA-256: 7bb9bdb13922ad95ad4178e187edc0998e57cbdba3c862c9eb0c5c3c4b875f2f
+```
+
+It armed a ten-minute independent rollback, stopped and disabled the five
+networkd units from the Quattro migration, masked both wait-online services,
+reloaded NetworkManager, restarted resolved, and required NetworkManager state
+100, a default route, DNS resolution, and HTTPS. It canceled the timer after
+every assertion passed.
+
+Post-cutover validation:
+
+```text
+NetworkManager: enabled, active, full connectivity
+enp0s1:         192.168.64.4/24
+gateway:        192.168.64.1
+networkd:       disabled, inactive
+resolved:       enabled, active
+rollback timer: absent
+```
+
+Restarted the single shell through:
+
+```bash
+omarchy restart shell
+omarchy-shell shell summon omarchy.network
+omarchy capture screenshot fullscreen save
+omarchy-shell shell hide omarchy.network
+```
+
+The replacement Quickshell process returned `ok` and logged no warnings. The
+network panel screenshot was visually inspected at:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_02-28-47.png
+```
+
+It showed the active Ethernet address and gateway, traffic, latency, packet
+loss, totals, and DNS controls without clipping or stale state.
+
+Hyprland configuration, the SPICE resize helper, direct VirGL, display mode,
+failed-unit counts, pending-migration count, and protected hashes were
+rechecked. All passed; the queue remained at 46 and the boot hashes remained
+exact. The complete live result and remaining reboot proof are in
+`phase2-networkmanager-2026-07-30.md`.
