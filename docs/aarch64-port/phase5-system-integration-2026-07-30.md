@@ -213,16 +213,101 @@ The rollback elevates through `pkexec`, reinstalls the three cached packages,
 restores the legacy drop-in, and enables iwd. A reboot is required before
 relying on restored Wi-Fi so NetworkManager selects the restored backend.
 
-## Planned Isolated Transaction
+The first payload-tar attempt included package-owned directory entries such as
+`/usr/`, which made tar recurse outside the intended three package payloads.
+It was stopped and the incomplete file was deleted before any system change.
+The final archive list contains only 81 regular files and symlinks and uses
+tar's no-recursion mode. Its 7.4 MiB payload archive and all cached packages
+pass the recorded SHA-256 checks.
 
-The bounded transaction is:
+## Live Transaction
 
-1. move only the exact legacy `iwd.conf` into the rollback directory;
-2. reload NetworkManager configuration and prove Ethernet, DNS, and HTTPS;
-3. disable and stop iwd;
-4. remove exactly `impala`, `iwd`, and orphaned `ell`;
-5. prove the package manifest, desktop, network, migrations, and protected
-   hashes;
-6. perform one controlled reboot and repeat acceptance.
+The live drop-in still matched its recorded hash immediately before mutation.
+It was moved, not deleted, to:
 
-No migration marker or unrelated system integration state will change.
+```text
+/home/jj/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/retired-live-config/iwd.conf
+```
+
+NetworkManager configuration was reloaded after the move. The effective
+configuration no longer contained `wifi.backend=iwd`. Before touching the
+service or packages, the VM retained:
+
+```text
+NetworkManager device state: 100 (connected)
+IPv4:                       192.168.64.4/24
+gateway:                    192.168.64.1
+default route:              present
+DNS:                        pass
+HTTPS:                      HTTP 200
+Quickshell IPC:             ok
+Hyprland errors:            none
+```
+
+`iwd.service` was then disabled and stopped. The complete network and
+failed-unit proof passed again before package removal.
+
+The final `pacman -Rs` preview remained:
+
+```text
+impala 0.7.4-1
+iwd    3.12-1
+ell    0.83-1
+```
+
+The inspected transaction removed exactly those three packages and freed
+7.33 MiB. Pacman noted that `ell` is optional for BlueZ's `btpclient` and iwd
+is an optional NetworkManager backend; neither is required by the Quattro base
+manifest.
+
+## Live Validation
+
+After the transaction:
+
+```text
+installed packages:  979
+explicit packages:   199
+foreign packages:    37
+orphans:             0
+manifest entries:    143
+manifest missing:    0
+pending migrations:  46
+Quickshell IPC:       ok
+Hyprland errors:      none
+failed units:         zero system and user
+```
+
+`impala`, `iwd`, and `ell` are absent. The iwd unit is `not-found`.
+NetworkManager and its hard `wpa_supplicant` dependency pass package-file
+checks. Ethernet retained the same address, route, gateway, DNS, and HTTP 200
+connectivity.
+
+The exact remaining intersection with Quattro's canonical retired-package
+list is now only the four intentionally preserved user applications:
+
+```text
+claude-code
+dust
+localsend-bin
+opencode
+```
+
+Quickshell, Hyprland, PipeWire/WirePlumber, both SPICE agents, the
+package-owned resize helper, Retina scale 2, and direct VirGL remained healthy.
+The native Quickshell network panel showed Ethernet, the `.4` address, `.1`
+gateway, traffic, latency, packet loss, and DNS controls without clipping:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_05-45-41.png
+```
+
+The first panel capture coincided with the persistent migration notification,
+so the two layer surfaces overlapped. Dismissing only that notification and
+recapturing proved the panel itself was laid out correctly; no shell change
+was made.
+
+Every protected hash remains exact. No migration marker, Snapper or zram
+state, kernel, initramfs, Limine, UEFI, partition, or filesystem change ran.
+
+One controlled reboot remains to prove that NetworkManager selects its normal
+`wpa_supplicant` path without the retired drop-in or iwd package.

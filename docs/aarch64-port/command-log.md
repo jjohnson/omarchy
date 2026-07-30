@@ -1458,3 +1458,91 @@ pasted it into the guest, proving host-to-guest SPICE clipboard transfer.
 The four protected hashes remained exact. No migration, finalization, kernel,
 initramfs, Limine, UEFI, partition, or filesystem action ran. Phase 4 legacy
 cleanup is complete.
+
+## 2026-07-30: Phase 5 iwd and migration audit
+
+The completed Phase 4 VM was duplicated as:
+
+```text
+Quattro-ARM64-Phase-5-System-Integration-Working-2026-07-30
+```
+
+The new boot reproduced the 982-package Phase 4 state, 143/143 manifest
+resolution, 46 pending migrations, zero orphans or failed units, a healthy
+desktop and network, and the exact protected hashes.
+
+NetworkManager owned the only hardware link, `enp0s1` virtio Ethernet. iwd
+was still enabled and active despite the absence of a Wi-Fi device. The audit
+found an unowned Omarchy 3 drop-in:
+
+```text
+/etc/NetworkManager/conf.d/iwd.conf
+[device]
+wifi.backend=iwd
+```
+
+Quattro retired `impala` and `iwd` but left this configuration behind,
+creating a future Wi-Fi failure on upgraded machines. Added an exact-content
+cleanup to the live-upgrade command. It backs up and removes only the known
+legacy file, preserves package-owned or customized variants, and avoids
+reloading NetworkManager mid-upgrade.
+
+Focused upgrade and network-transition tests pass. The fix is pushed as:
+
+```text
+1288ab0058e6d52631bb7acad2c4315f2686c495
+```
+
+Read and classified every one of the 46 pending migrations against the live
+VM. The broad queue remains intentionally pending: it includes removal of the
+preserved `dust` application, possible Snapper snapshot deletion, system and
+package transitions, and three conditional boot-image paths. The complete
+matrix is in `docs/aarch64-port/phase5-system-integration-2026-07-30.md`.
+
+## 2026-07-30: Phase 5 live network fallback retirement
+
+Created the mode-`0700`, 9.6 MiB rollback bundle:
+
+```text
+/home/jj/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/
+```
+
+It contains cached signed packages, database records, the non-directory
+package payload, exact network state, SHA-256 records, and an executable
+rollback. The first payload-tar attempt accidentally included directory
+entries and began recursing through `/usr`; it was stopped and its incomplete
+archive was deleted before any system mutation. The replacement archive uses
+81 regular files and symlinks with no-recursion mode.
+
+The live iwd drop-in was hash-verified and moved into the rollback directory.
+After reloading NetworkManager configuration, Ethernet state 100, the `.4`
+address, `.1` gateway, default route, DNS, HTTPS, Quickshell, and Hyprland all
+passed before any service change.
+
+iwd was disabled and stopped. The same proof passed before the final exact
+package transaction:
+
+```text
+impala 0.7.4-1
+iwd    3.12-1
+ell    0.83-1
+```
+
+The transaction freed 7.33 MiB. Live validation found 979 installed packages,
+199 explicit packages, 37 foreign packages, zero orphans, all 143 manifest
+entries satisfied, all 46 migrations pending, and zero failed system or user
+units. NetworkManager and `wpa_supplicant` pass package checks. The remaining
+canonical retired names are only `claude-code`, `dust`, `localsend-bin`, and
+`opencode`, all intentionally preserved applications.
+
+The Quickshell network panel passed visual inspection after dismissing the
+unrelated migration notification that initially overlapped it:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_05-45-41.png
+```
+
+Quickshell, Hyprland, audio, SPICE, Retina scale 2, dynamic resize, and direct
+VirGL remained healthy. Every protected hash remained exact. No migration,
+Snapper, zram, boot, partition, or filesystem action ran. One controlled
+reboot remains.
