@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# omarchy:summary=Resolve the default pacman config files for an architecture
+# omarchy:args=[architecture] [stable|rc|edge]
+# omarchy:hidden=true
+
+set -euo pipefail
+
+architecture="${1:-$(uname -m)}"
+channel="${2:-stable}"
+
+case "$channel" in
+  stable|rc|edge)
+    ;;
+  *)
+    echo "Error: invalid package channel '$channel'" >&2
+    exit 1
+    ;;
+esac
+
+case "$architecture" in
+  x86_64)
+    pacman_config="$OMARCHY_PATH/default/pacman/pacman-$channel.conf"
+    mirrorlist="$OMARCHY_PATH/default/pacman/mirrorlist-$channel"
+    ;;
+  aarch64|arm64)
+    pacman_config="$OMARCHY_PATH/default/pacman/pacman-$channel-aarch64.conf"
+    mirrorlist="$OMARCHY_PATH/default/pacman/mirrorlist-aarch64"
+    ;;
+  *)
+    echo "Error: unsupported package architecture '$architecture'" >&2
+    exit 1
+    ;;
+esac
+
+printf '%s\n%s\n' "$pacman_config" "$mirrorlist"

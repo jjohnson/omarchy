@@ -16,8 +16,9 @@ fi
 echo "Setting channel to $channel"
 echo
 
-sudo cp -f "$OMARCHY_PATH/default/pacman/pacman-$channel.conf" /etc/pacman.conf
-sudo cp -f "$OMARCHY_PATH/default/pacman/mirrorlist-$channel" /etc/pacman.d/mirrorlist
+mapfile -t pacman_defaults < <(omarchy-pkg-pacman-config "$(uname -m)" "$channel")
+sudo cp -f "${pacman_defaults[0]}" /etc/pacman.conf
+sudo cp -f "${pacman_defaults[1]}" /etc/pacman.d/mirrorlist
 
 # Allow user customization of /etc/pacman.conf before the upgrade runs
 omarchy-hook pre-refresh-pacman
