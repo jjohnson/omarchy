@@ -209,9 +209,78 @@ The experiment did not run or alter:
 - `1784917531.sh`: conditional Limine-managed boot-image rebuild;
 - `1785273276.sh`: T2-specific boot-image repair.
 
-## Remaining Proof
+## Reboot Persistence Proof
 
-The live transition passed. A reboot of the Phase 2 working clone is still
-required to prove that NetworkManager starts on its own, networkd stays
-retired, the automatic Ethernet profile returns, and the complete Quattro
-desktop remains healthy without a transient cutover process.
+The Phase 2 working clone rebooted normally at
+`2026-07-30 02:37:20 EDT`. NetworkManager returned through its enabled system
+unit without a transient cutover process:
+
+```text
+NetworkManager.service              enabled, active
+NetworkManager-wait-online.service  masked, inactive
+systemd-networkd.service            disabled, inactive
+systemd-networkd sockets            disabled, inactive
+systemd-network-generator.service   disabled, inactive
+systemd-resolved.service            enabled, active
+```
+
+The networkd journal had no current-boot entries. NetworkManager recreated and
+activated `Wired connection 1` with the same UUID and address:
+
+```text
+UUID:     4febe398-240f-3ea4-9ecf-64c61a0411f8
+device:   enp0s1
+state:    100 (connected)
+IPv4:     192.168.64.4/24
+gateway:  192.168.64.1
+DNS:      192.168.64.1
+```
+
+IPv4 and IPv6 connectivity both reported full. DNS resolution and HTTPS to
+`archlinux.org` passed, and NetworkManager/resolved logged no current-boot
+warnings.
+
+Normal Quattro autostart returned Hyprland, Quickshell, the package-owned
+SPICE resize helper, udiskie, PipeWire, WirePlumber, and both SPICE agents.
+Quickshell IPC returned `ok`, Hyprland configuration errors were empty, and no
+legacy Waybar, Mako, swaybg, Walker, Elephant, or SwayOSD process returned.
+
+The native network panel was captured and visually inspected after reboot:
+
+```text
+~/Pictures/screenshot-2026-07-30_02-38-48.png
+```
+
+It showed the live `.4` address and `.1` gateway, receive/send rates, 12 ms
+latency, zero packet loss, transfer totals, and DNS controls without clipping,
+overlap, stale state, or shell warnings.
+
+A manual host resize then requested `800x600`. The package-owned helper was
+active, and after the rollback window the connector and compositor agreed:
+
+```text
+DRM preferred:  800x600
+Hyprland:       800x600@60.317, scale 1
+```
+
+The UTM window stayed at the requested size. `spice-vdagent` again logged its
+known XRandR failure and `Restoring previous config` message, but the actual
+DRM and Hyprland state did not revert.
+
+Direct rendering remained enabled through
+`virgl (Apple M4 Pro)` with OpenGL 4.1. PipeWire, PipeWire Pulse, WirePlumber,
+`spice-vdagentd`, and the user SPICE agent were active. System and user
+managers had zero failed units.
+
+All 46 migrations remained pending, no rollback timer existed, and the
+protected hashes remained exact:
+
+```text
+2662962bab816958bad80f3c24e275f2e306b984bdf1f81dc235342382c8048f  /boot/initramfs-linux.img
+add658562939b9abb73bf6fe7865fb177cd8fbfa5a73479467cf3469da57ac44  /boot/limine.conf
+6edf91b6ee62aff521de9666d6f8c790be086ecec48352f2dd580d66a6831dd3  /etc/mkinitcpio.conf
+a0bf23d62d7d74bfa597e38af7cc841837ba4a353ed8f8b10b5dd3a69dab5814  /etc/mkinitcpio.d/linux-aarch64.preset
+```
+
+The isolated NetworkManager phase is complete. The retained networkd file and
+rollback command remain recovery assets; they are not active configuration.

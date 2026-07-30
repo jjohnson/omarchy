@@ -943,5 +943,82 @@ loss, totals, and DNS controls without clipping or stale state.
 Hyprland configuration, the SPICE resize helper, direct VirGL, display mode,
 failed-unit counts, pending-migration count, and protected hashes were
 rechecked. All passed; the queue remained at 46 and the boot hashes remained
-exact. The complete live result and remaining reboot proof are in
+exact. The complete live result and reboot proof are in
 `phase2-networkmanager-2026-07-30.md`.
+
+## 2026-07-30: NetworkManager persistence boot
+
+Rebooted only the Phase 2 working clone. The new boot began at
+`2026-07-30 02:37:20 EDT`.
+
+Validated service ownership before making any change:
+
+```bash
+systemctl is-enabled NetworkManager.service systemd-networkd.service
+systemctl is-active NetworkManager.service systemd-networkd.service \
+  systemd-resolved.service
+nmcli general status
+nmcli -f DEVICE,TYPE,STATE,CONNECTION device status
+nmcli -f GENERAL,IP4,IP6 device show enp0s1
+journalctl -b -u NetworkManager.service -u systemd-resolved.service \
+  -p warning..alert
+journalctl -b -u systemd-networkd.service
+```
+
+NetworkManager returned enabled and active, while networkd and all five
+networkd sockets remained disabled and inactive. The disabled network
+generator was also inactive after reboot. The networkd current-boot journal
+was empty.
+
+`Wired connection 1` returned with UUID
+`4febe398-240f-3ea4-9ecf-64c61a0411f8`, NetworkManager state 100, full IPv4
+and IPv6 connectivity, `192.168.64.4/24`, gateway `192.168.64.1`, and resolved
+DNS. A DNS lookup and HTTPS request to `archlinux.org` passed. NetworkManager
+and resolved had no current-boot warnings.
+
+Revalidated the complete desktop:
+
+```bash
+systemctl --user show-environment
+omarchy-shell shell ping
+hyprctl configerrors
+hyprctl -j monitors
+glxinfo -B
+systemctl is-active spice-vdagentd.service
+systemctl --user is-active spice-vdagent.service
+systemctl --user is-active pipewire.service pipewire-pulse.service \
+  wireplumber.service
+systemctl --failed --no-legend
+systemctl --user --failed --no-legend
+```
+
+Quickshell, Hyprland, the package-owned resize helper, both SPICE agents, and
+the audio services returned normally. Shell IPC was `ok`, Hyprland errors were
+empty, no legacy shell process returned, VirGL remained direct, and there were
+zero failed units.
+
+Summoned and visually inspected the post-reboot network panel:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_02-38-48.png
+```
+
+The panel showed the active `.4` address, `.1` gateway, traffic, 12 ms latency,
+zero packet loss, totals, and DNS controls without clipping, stale state, or
+Quickshell warnings.
+
+Performed a final manual host-driven UTM resize. The requested `800x600` size
+stayed put. The DRM connector and Hyprland agreed after the rollback window:
+
+```text
+kernel preferred: 800x600
+Hyprland active:   800x600@60.317, scale 1
+```
+
+The known `spice-vdagent` XRandR failure and `Restoring previous config`
+warning appeared, but the connector, compositor, and UTM window did not
+revert.
+
+The migration queue remained at 46, no rollback timer existed, and all four
+protected hashes remained exact. This completed the isolated NetworkManager
+persistence phase without running a migration or touching the boot stack.
