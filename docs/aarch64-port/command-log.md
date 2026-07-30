@@ -319,6 +319,178 @@ little-endian AArch64 PIE executables. The dry transaction selected the six
 local runtime packages and four official Arch Linux ARM dependencies:
 `libdwarf`, `cpptrace`, `vulkan-headers`, and `pacman-contrib`.
 
+## 2026-07-29: Guarded package installation
+
+Backed up the boot/config files and user state that could be affected:
+
+```bash
+pkexec <scoped backup and pacman transaction helper>
+tar -cf \
+  /home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-finalize-user-2026-07-29.tar \
+  <existing user state paths>
+```
+
+The first installation attempt stopped before changing packages because 13
+legacy unowned files overlapped `omarchy-settings-dev`. After comparing those
+files with the package payload, the final transaction used exact
+`--overwrite` arguments for those paths only:
+
+```bash
+pkexec \
+  /home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/install-aarch64-runtime.sh
+```
+
+The local packages and their four official runtime dependencies installed
+successfully. `limine-mkinitcpio-hook` was already installed at the required
+version and was not reinstalled.
+
+Verified the guarded state immediately after the transaction:
+
+```bash
+pacman -Q <runtime package names>
+pacman -Qk <runtime package names>
+sha256sum /boot/initramfs-linux.img /boot/limine.conf \
+  /etc/mkinitcpio.conf /etc/mkinitcpio.d/linux-aarch64.preset
+hyprctl configerrors
+glxinfo -B
+```
+
+All four boot/initramfs hashes match the pre-install baseline exactly.
+
+## 2026-07-29: Quattro user finalization
+
+Finalized the existing user against the packaged Quattro tree:
+
+```bash
+env OMARCHY_PATH=/usr/share/omarchy \
+  OMARCHY_INSTALL=/usr/share/omarchy/install \
+  OMARCHY_SETUP_CONTEXT=runtime \
+  PATH=/usr/bin:/bin \
+  /usr/bin/omarchy-finalize-user --force
+```
+
+The command completed successfully. `omarchy-reinstall-configs` and the broad
+`omarchy-upgrade-to-quattro` transition were not run because they exceed the
+boot/config scope of this milestone.
+
+## 2026-07-29: Quickshell launch diagnosis
+
+The first foreground and generic transient-service launches loaded the full
+QML tree, then received `SIGTERM`. The shell was relaunched under the same UWSM
+application management used by the real desktop:
+
+```bash
+uwsm-app -s b -t service \
+  -u omarchy-quattro-shell-test.service \
+  -p "Environment=OMARCHY_PATH=/usr/share/omarchy" \
+  -- quickshell -n -p /usr/share/omarchy/shell
+```
+
+The process remained active when given the legacy empty plugin path, but exited
+after loading Quattro's Indicators widget. Temporary manifest and indicator
+probes narrowed the behavior without changing either source checkout or user
+configuration.
+
+GDB captured the actual termination:
+
+```bash
+uwsm-app -s b -t service \
+  -u omarchy-quattro-shell-gdb.service \
+  -p "Environment=OMARCHY_PATH=/usr/share/omarchy" \
+  -- gdb -batch -ex run -ex "thread apply all bt" \
+  --args /usr/bin/quickshell -p /usr/share/omarchy/shell
+```
+
+Result: the main Quickshell thread received external `SIGTERM`; there was no
+crash or QML fatal error. The current UWSM manager still had this 3.x
+environment:
+
+```text
+OMARCHY_PATH=/home/jj/.local/share/omarchy
+PATH=...:/home/jj/.local/share/omarchy/bin:...:/usr/bin:...
+```
+
+The Indicators widget consequently ran the legacy
+`omarchy-voxtype-status`, whose `trap 'kill 0' EXIT` killed the entire process
+group when `voxtype` was absent. The packaged Quattro command has no such trap.
+
+The stable launch command therefore pins both runtime variables:
+
+```bash
+uwsm-app -s b -t service \
+  -u omarchy-quattro-shell-runtime.service \
+  -d "Quattro shell ARM64 runtime validation" \
+  -p "Environment=OMARCHY_PATH=/usr/share/omarchy" \
+  -p "Environment=PATH=/usr/bin:/bin" \
+  -- quickshell -n -p /usr/share/omarchy/shell
+```
+
+IPC returned `ok`; 34 first-party plugins were registered and 27 enabled.
+
+## 2026-07-29: Desktop acceptance
+
+Stopped the exact legacy Waybar, Mako, swaybg, and Walker user units, then the
+exact legacy polkit-agent PID. Restarted Quickshell so it could own
+notifications and polkit from startup. No broad process-kill command was used.
+
+Installed two small signed AArch64 packages from the Quattro base set:
+
+```bash
+pkexec pacman -S --noconfirm --needed inotify-tools wtype
+```
+
+Restarted Quickshell and confirmed `inotifywait` was watching
+`~/.config/omarchy/plugins`.
+
+Verified the shipped Lua configuration without overwriting the live 3.x user
+configuration:
+
+```bash
+verify_home=$(mktemp -d /tmp/omarchy-quattro-hypr-verify.XXXXXX)
+mkdir -p "$verify_home/.config"
+cp -a /usr/share/omarchy/config/hypr "$verify_home/.config/"
+env HOME="$verify_home" \
+  XDG_CONFIG_HOME="$verify_home/.config" \
+  OMARCHY_PATH=/usr/share/omarchy \
+  PATH=/usr/bin:/bin \
+  Hyprland --verify-config \
+  --config "$verify_home/.config/hypr/hyprland.lua"
+```
+
+Result: `config ok`.
+
+Exercised shell IPC, keyboard selection, terminal launch, workspaces, graphics,
+audio, clipboard, SPICE, and notifications:
+
+```bash
+env OMARCHY_PATH=/usr/share/omarchy PATH=/usr/bin:/bin \
+  omarchy-shell shell ping
+env OMARCHY_PATH=/usr/share/omarchy PATH=/usr/bin:/bin \
+  omarchy menu summon apps
+wtype -d 40 "Alacritty"
+wtype -k Return
+hyprctl dispatch workspace 3
+hyprctl dispatch workspace 2
+glxinfo -B
+wpctl status
+timeout 3 speaker-test -D pipewire -c 2 -t sine -f 440 -l 1
+wl-copy
+wl-paste
+omarchy-notification-send -g "✓" \
+  "Quattro ARM64" "Quickshell notification path is live"
+```
+
+Captured each visually distinct state with:
+
+```bash
+env OMARCHY_PATH=/usr/share/omarchy PATH=/usr/bin:/bin \
+  omarchy capture screenshot fullscreen save
+```
+
+The complete result, screenshot paths, remaining host/base-set differences,
+and final integrity hashes are recorded in
+[`desktop-validation-2026-07-29.md`](desktop-validation-2026-07-29.md).
+
 Before privileged installation, recoverable copies of the current initramfs,
 Limine configuration, mkinitcpio configuration and preset, and every file
 overwritten by the settings package scriptlet were placed under:

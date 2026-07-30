@@ -163,3 +163,22 @@ cpptrace 1.0.4-2
 vulkan-headers 1:1.4.350.1-1
 pacman-contrib 1.13.1-1
 ```
+
+## Existing-Host Base-Set Differences
+
+`omarchy-dev` intentionally declares only desktop-breaking hard dependencies;
+the ISO installs the larger default set from `install/omarchy-base.packages`.
+Two non-hard utilities needed by acceptance were absent from the 3.x host:
+
+| Package | Quattro use | AArch64 result |
+| --- | --- | --- |
+| `inotify-tools` | third-party plugin hot-reload watcher | `extra/aarch64`, installed unchanged |
+| `wtype` | keyboard-driven desktop acceptance | `extra/aarch64`, installed unchanged |
+
+The host also uses `iwd`, while the Quattro default set uses NetworkManager.
+Both NetworkManager and the BlueZ packages are available unchanged for
+AArch64, but they were not installed or enabled because switching a working
+network stack and adding hardware services were not required to launch the
+desktop. This produces expected network-backend and BlueZ warnings in the
+Quickshell log; it is an existing-host integration difference, not an
+architecture or package-build blocker.
