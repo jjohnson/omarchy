@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# omarchy:summary=Follow SPICE window resizes on virtio-gpu displays
+# omarchy:args=[sync]
+# omarchy:hidden=true
+
+DRM_PATH="${OMARCHY_DRM_PATH:-/sys/class/drm}"
+SPICE_PORT="${OMARCHY_SPICE_PORT:-/dev/virtio-ports/com.redhat.spice.0}"
+
+# spice-vdagent updates the connector's preferred mode before asking XWayland
+# to resize. Hyprland's Lua config does not adopt that transient mode on its
+# own, so apply the 60 Hz virtio-gpu mode while SPICE still advertises it.
+virtio_gpu_card() {
+  local card="$1"
+  local driver
+
+  for driver in "$card"/device/virtio*/driver; do
+    [[ -L $driver ]] || continue
+    [[ $(readlink -f "$driver") == */virtio_gpu ]] && return 0
+  done
+
+  return 1
+}
+
+spice_virtio_gpu_present() {
+  local card
+
+  [[ -e $SPICE_PORT ]] || return 1
+
+  for card in "$DRM_PATH"/card[0-9]*; do
+    [[ -d $card ]] || continue
+    [[ ${card##*/} =~ ^card[0-9]+$ ]] || continue
+    virtio_gpu_card "$card" && return 0
+  done
+
+  return 1
+}
+
+sync_spice_monitor_modes() {
+  local monitors card card_name connector output preferred current
+  local width height x y scale
+
+  monitors=$(hyprctl monitors all -j) || return 0
+
+  for card in "$DRM_PATH"/card[0-9]*; do
+    [[ -d $card ]] || continue
+    [[ ${card##*/} =~ ^card[0-9]+$ ]] || continue
+    virtio_gpu_card "$card" || continue
+    card_name="${card##*/}"
+
+    for connector in "$card"-*; do
+      [[ -d $connector ]] || continue
+      [[ -r $connector/status && $(<"$connector/status") == "connected" ]] || continue
+      [[ -r $connector/modes ]] || continue
+
+      preferred=$(sed -n '1p' "$connector/modes")
+      [[ $preferred =~ ^[0-9]+x[0-9]+$ ]] || continue
+
+      output="${connector##*/}"
+      output="${output#"$card_name"-}"
+      [[ $output =~ ^[A-Za-z0-9._-]+$ ]] || continue
+
+      current=$(jq -r --arg output "$output" '
+        .[]
+        | select(.name == $output and .disabled == false)
+        | [.width, .height, .x, .y, .scale]
+        | @tsv
+      ' <<<"$monitors")
+      [[ -n $current ]] || continue
+
+      read -r width height x y scale <<<"$current"
+      [[ $width =~ ^[0-9]+$ && $height =~ ^[0-9]+$ ]] || continue
+      [[ $x =~ ^-?[0-9]+$ && $y =~ ^-?[0-9]+$ ]] || continue
+      [[ $scale =~ ^[0-9]+([.][0-9]+)?$ ]] || continue
+      [[ ${width}x${height} == $preferred ]] && continue
+
+      hyprctl eval "hl.monitor({ output = \"$output\", mode = \"${preferred}@60\", position = \"${x}x${y}\", scale = $scale })" >/dev/null 2>&1 || true
+    done
+  done
+}
+
+spice_virtio_gpu_present || exit 0
+
+if [[ ${1:-} == "sync" ]]; then
+  sync_spice_monitor_modes
+  exit 0
+fi
+
+sync_spice_monitor_modes
+
+while read -r event; do
+  [[ $event == KERNEL* ]] && sync_spice_monitor_modes
+done < <(udevadm monitor --kernel --subsystem-match=drm)
