@@ -309,5 +309,76 @@ was made.
 Every protected hash remains exact. No migration marker, Snapper or zram
 state, kernel, initramfs, Limine, UEFI, partition, or filesystem change ran.
 
-One controlled reboot remains to prove that NetworkManager selects its normal
-`wpa_supplicant` path without the retired drop-in or iwd package.
+## Proof Reboot
+
+The controlled reboot began at `2026-07-30 05:54:14 EDT`. The package state
+reproduced exactly:
+
+```text
+installed packages:  979
+explicit packages:   199
+foreign packages:    37
+orphans:             0
+manifest entries:    143
+manifest missing:    0
+pending migrations:  46
+```
+
+`impala`, `iwd`, and `ell` remained absent. The iwd unit was `not-found` and
+its current-boot journal contained zero lines. NetworkManager returned enabled
+and active with no iwd or `wifi.backend` reference anywhere in its system,
+runtime, or vendor configuration. It restored the same connection:
+
+```text
+name:         Wired connection 1
+UUID:         4febe398-240f-3ea4-9ecf-64c61a0411f8
+device state: 100 (connected)
+connectivity: full
+IPv4:         192.168.64.4/24
+gateway:      192.168.64.1
+DNS:          pass
+HTTPS:        HTTP 200
+```
+
+NetworkManager and `wpa_supplicant` again passed package-file checks.
+`systemd-networkd` remained disabled and inactive with an empty current-boot
+journal. NetworkManager emitted no warning-level current-boot messages.
+
+`greetd`, Hyprland, Quickshell, PipeWire, PipeWire Pulse, WirePlumber, and
+both SPICE agents returned normally. The current-boot journal shows Hyprland
+selecting `/home/jj/.config/hypr/hyprland.lua`. UWSM exported
+`OMARCHY_PATH=/usr/share/omarchy`. Exactly one Quickshell process and one
+package-owned SPICE resize helper were direct Hyprland children. No retired UI
+process returned, no software-rendering override was present, and both system
+and user failed-unit counts remained zero.
+
+The post-reboot Quickshell network panel, root menu, and newly launched
+terminal passed visual inspection:
+
+```text
+/home/jj/Pictures/screenshot-2026-07-30_05-56-34.png
+/home/jj/Pictures/screenshot-2026-07-30_05-56-52.png
+/home/jj/Pictures/screenshot-2026-07-30_05-57-21.png
+```
+
+The network panel contained the active Ethernet address, gateway, traffic,
+latency, packet loss, and DNS controls with no clipping or stale Wi-Fi state.
+The correct Lua dispatcher moved from workspace 1 to 2 and back. A short ALSA
+channel sample played through PipeWire at 20 percent and was audible; the sink
+was restored to its prior zero-volume state afterward.
+
+The user resized the UTM window smaller and larger and waited beyond the old
+rollback interval. It stayed at the requested size. Final connector and
+Hyprland state agreed at `2700x1818@60`, scale 2, logical `1350x909`.
+The user copied `phase5-network-retired-ok` on macOS and pasted it into the
+guest, proving host-to-guest SPICE clipboard transfer.
+
+Direct VirGL remained active on `virgl (Apple M4 Pro)` with OpenGL 4.1. Every
+protected hash remained exact. No migration marker, Snapper or zram state,
+kernel, initramfs, Limine, UEFI, partition, or filesystem change ran.
+
+Phase 5 system integration is complete. The completed VM can be preserved as:
+
+```text
+Quattro-ARM64-Phase-5-System-Integration-Complete-2026-07-30
+```

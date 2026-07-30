@@ -1546,3 +1546,58 @@ Quickshell, Hyprland, audio, SPICE, Retina scale 2, dynamic resize, and direct
 VirGL remained healthy. Every protected hash remained exact. No migration,
 Snapper, zram, boot, partition, or filesystem action ran. One controlled
 reboot remains.
+
+## 2026-07-30: Phase 5 proof reboot
+
+The controlled reboot began at `2026-07-30 05:54:14 EDT`. The exact
+post-transaction package state returned:
+
+```text
+installed packages:  979
+explicit packages:   199
+foreign packages:    37
+orphans:             0
+manifest entries:    143
+manifest missing:    0
+pending migrations:  46
+```
+
+`impala`, `iwd`, and `ell` remained absent. The iwd unit was `not-found`, its
+current-boot journal was empty, and NetworkManager configuration contained no
+iwd reference. NetworkManager returned enabled and active with full
+connectivity on the same `Wired connection 1` UUID,
+`192.168.64.4/24` address, and `192.168.64.1` gateway. DNS and HTTPS passed.
+NetworkManager and `wpa_supplicant` had zero missing package files.
+`systemd-networkd` remained disabled and inactive with no current-boot
+activity.
+
+`greetd`, Hyprland, Quickshell, PipeWire, PipeWire Pulse, WirePlumber, both
+SPICE agents, and exactly one package-owned resize helper returned normally.
+Hyprland selected the Lua user configuration, UWSM exported
+`OMARCHY_PATH=/usr/share/omarchy`, no retired UI process returned, and there
+were no software-rendering overrides or failed system/user units.
+
+Post-reboot visual evidence:
+
+```text
+network panel: /home/jj/Pictures/screenshot-2026-07-30_05-56-34.png
+root menu:     /home/jj/Pictures/screenshot-2026-07-30_05-56-52.png
+terminal:      /home/jj/Pictures/screenshot-2026-07-30_05-57-21.png
+```
+
+The network panel showed the active Ethernet address, gateway, traffic,
+latency, packet loss, and DNS controls with no clipping or stale Wi-Fi state.
+Lua workspace dispatch moved from workspace 1 to 2 and back. A short audio
+sample was audible at 20 percent, after which the sink was restored to its
+prior zero-volume state.
+
+The user resized UTM smaller and larger and waited beyond the old rollback
+interval. Final DRM and Hyprland state agreed at `2700x1818@60`, scale 2,
+logical `1350x909`, and the window stayed put. The user copied
+`phase5-network-retired-ok` on macOS and pasted it into the guest, proving
+host-to-guest SPICE clipboard transfer.
+
+Direct VirGL remained active on the Apple M4 Pro with OpenGL 4.1. All four
+protected hashes remained exact, all 46 migration markers remained pending,
+and no Snapper, zram, kernel, initramfs, Limine, UEFI, partition, or
+filesystem action ran. Phase 5 system integration is complete.
