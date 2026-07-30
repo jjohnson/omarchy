@@ -21,6 +21,8 @@ the initial package test:
   command;
 - VirGL, audio, clipboard, workspaces, SPICE agents, menu navigation, terminal
   launch, and notifications passed;
+- host-driven UTM resizing passed in both directions after adding the
+  SPICE/virtio-gpu monitor synchronizer;
 - the protected boot files remained byte-for-byte unchanged.
 
 ## Proof-Boot Evidence
@@ -186,7 +188,7 @@ persistent Hyprland/Quickshell desktop milestone.
 | Audio | PipeWire sink/source and both 48 kHz stereo channels exercised | Pass |
 | Clipboard | Token round-trip passed and prior text restored | Pass |
 | Removable media runtime | `udiskie` installed, verified, and active | Pass |
-| SPICE | System and user agents active | Pass |
+| SPICE | System and user agents active; repeated host resize modes held | Pass |
 | Unit health | Zero failed system and user units | Pass |
 
 With Lua configuration active, the legacy command:
@@ -219,14 +221,73 @@ No clipping, overlap, stale surface, or focus problem was observed. The only
 visual defect in the user-supplied notification image was the accurate
 `udiskie` runtime failure, which is now resolved.
 
-The guest cannot initiate a host-driven UTM window resize. Both SPICE agents
-remain active, but one manual host window resize is still required to repeat
-that specific integration check on this proof boot.
+## SPICE Dynamic Resize
+
+The first host-driven resize exposed a Quattro runtime regression. UTM changed
+the virtio DRM connector's preferred mode, but Hyprland did not adopt it before
+`spice-vdagent` restored the previous configuration:
+
+```text
+01:27:22.613 kernel=800x600  hypr=1280x800
+01:27:28.860 kernel=1280x800 hypr=1280x800
+```
+
+The Omarchy monitor watcher was not responsible. It only handles monitor
+addition/removal and clamshell reconciliation. During the failed resize:
+
+- `/sys/class/drm/card0-Virtual-1/modes` advertised the requested mode first;
+- Hyprland's active mode and cached mode list remained unchanged;
+- `spice-vdagent` logged failed XRandR requests and restored the old mode.
+
+A live Lua monitor update proved that the compositor and virtio-gpu accepted
+the transient mode:
+
+```bash
+hyprctl eval \
+  'hl.monitor({ output = "Virtual-1", mode = "1512x909@60", position = "auto", scale = 1 })'
+```
+
+`1512x909` then remained active beyond the previous rollback window. The
+upstreamable fix added `omarchy-hyprland-spice-resize`, launched through normal
+Quattro Hyprland autostart. It is narrowly gated on both:
+
+- `/dev/virtio-ports/com.redhat.spice.0`;
+- a DRM card bound to the `virtio_gpu` driver.
+
+The helper listens for DRM kernel events, reads the connector's preferred
+dimensions, and applies them through Hyprland's Lua API while preserving the
+monitor's position and scale. It exits immediately on non-matching hardware.
+
+Focused tests cover the changed mode, redundant mode, missing SPICE port,
+non-virtio GPU, and disconnected-output cases. Repeated smaller/larger resizes
+passed with the checkout helper. The exact committed payload was then built,
+inspected, and installed as:
+
+```text
+omarchy-dev          4.0.0.r1471.g227b6e0-1
+omarchy-settings-dev 4.0.0.r1471.g227b6e0-1
+```
+
+The installed `/usr/bin/omarchy-hyprland-spice-resize` passed another manual
+host resize. After the rollback window, the connector and compositor agreed:
+
+```text
+kernel preferred: 800x600
+Hyprland active:   800x600@60.317, scale 1
+```
+
+There was no new `Restoring previous config` event. Hyprland config errors
+remained empty, Quickshell IPC returned `ok`, and VirGL remained
+`virgl (Apple M4 Pro)` with OpenGL 4.1 and no software-rendering override.
+
+The implementation and tests were pushed on `quattro-aarch64-utm` in commit
+`227b6e0ec245ecdf0d8175aa05be5e03d0e36b61`.
 
 ## Boot Integrity
 
-The protected hashes remained exact after the proof boot, package installation,
-shell restart, and acceptance checks:
+The protected hashes remained exact after the proof boot, package
+installations, shell restart, dynamic-resize package upgrade, and acceptance
+checks:
 
 ```text
 2662962bab816958bad80f3c24e275f2e306b984bdf1f81dc235342382c8048f  /boot/initramfs-linux.img

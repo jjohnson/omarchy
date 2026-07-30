@@ -627,3 +627,95 @@ hyprctl dispatch 'hl.dsp.focus({ workspace = "3" })'
 
 The complete proof-boot result is recorded in
 [`persistent-session-proof-2026-07-30.md`](persistent-session-proof-2026-07-30.md).
+
+## 2026-07-30: SPICE dynamic-resize recovery
+
+A manual host resize changed the UTM window briefly and then snapped back.
+Captured the DRM connector and Hyprland monitor state at 100 ms intervals:
+
+```text
+01:27:22.613 kernel=800x600  hypr=1280x800
+01:27:28.860 kernel=1280x800 hypr=1280x800
+```
+
+`spice-vdagent` logged failed XRandR operations and restored the previous
+configuration. The existing `omarchy-hyprland-monitor-watch` process was
+excluded as the cause because its source only reacts to added/removed outputs
+and clamshell state.
+
+Proved the mode itself was valid with a reversible Hyprland Lua update, then
+captured a nonstandard `1512x909` UTM request and applied it while the connector
+still advertised it:
+
+```bash
+hyprctl eval \
+  'hl.monitor({ output = "Virtual-1", mode = "1512x909@60", position = "auto", scale = 1 })'
+```
+
+The connector and compositor remained at `1512x909` for the complete trace,
+past the previous six-second rollback window.
+
+Added an internal `omarchy-hyprland-spice-resize` helper and normal Quattro
+autostart entry. The helper is gated on the SPICE virtio port and a DRM card
+bound to `virtio_gpu`, listens to DRM kernel events, and preserves active
+monitor position and scale. Added focused shell coverage for changed,
+unchanged, unsupported, and disconnected states.
+
+Validation:
+
+```bash
+bash -n \
+  bin/omarchy-hyprland-spice-resize \
+  test/shell.d/monitor-spice-resize-test.sh
+./test/shell.d/monitor-spice-resize-test.sh
+./test/shell.d/monitor-recovery-test.sh
+OMARCHY_PKGS_PATH=~/Projects/omarchy-pkgs-quattro-arm64 ./test/shell
+```
+
+The focused tests passed. The aggregate shell suite passed the new monitor
+test and later reported the existing sleep-lock timing-budget failure.
+
+Committed and pushed the implementation:
+
+```text
+227b6e0ec245ecdf0d8175aa05be5e03d0e36b61
+Follow SPICE virtio display resizes
+```
+
+Built both owning packages from that exact local commit with
+`OMARCHY_SRC=~/Projects/omarchy-quattro-arm64`:
+
+```text
+omarchy-dev-4.0.0.r1471.g227b6e0-1-any.pkg.tar.xz
+SHA-256: 3ceee4ed42b2997076c9f8edc2c056f2e93d112242aca23a86d469270007f353
+
+omarchy-settings-dev-4.0.0.r1471.g227b6e0-1-any.pkg.tar.xz
+SHA-256: aa2c5cc80b0d0bffd599b215137bdf44ccec82648483c3efb80b68cca42c2c2f
+```
+
+Inspected `.PKGINFO`, dependency resolution, file modes, and the exact helper
+and autostart payloads before installing both packages in one local pacman
+transaction. There were no unresolved dependencies. The settings package
+reported its three pre-existing backup-array warnings during build.
+
+Stopped the checkout-launched helper and started the installed command through
+Hyprland/UWSM:
+
+```text
+/bin/bash /usr/bin/omarchy-hyprland-spice-resize
+app-Hyprland-omarchy-hyprland-spice-resize-*.scope
+```
+
+The installed package handled another manual UTM resize. Eight seconds later,
+both the connector and Hyprland remained at `800x600`; no new SPICE restore
+event occurred. Quickshell IPC, empty Hyprland config errors, VirGL, and the
+absence of a software-rendering override were rechecked.
+
+The protected hashes remained unchanged:
+
+```text
+2662962bab816958bad80f3c24e275f2e306b984bdf1f81dc235342382c8048f  /boot/initramfs-linux.img
+add658562939b9abb73bf6fe7865fb177cd8fbfa5a73479467cf3469da57ac44  /boot/limine.conf
+6edf91b6ee62aff521de9666d6f8c790be086ecec48352f2dd580d66a6831dd3  /etc/mkinitcpio.conf
+a0bf23d62d7d74bfa597e38af7cc841837ba4a353ed8f8b10b5dd3a69dab5814  /etc/mkinitcpio.d/linux-aarch64.preset
+```
