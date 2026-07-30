@@ -149,3 +149,46 @@ git switch -c quattro-aarch64-utm
 
 Exact commits and worktree paths are recorded in
 [`repositories.md`](repositories.md).
+
+## 2026-07-29: Hard dependency audit
+
+Read the existing ISO architecture plan and inspected all relevant PKGBUILDs:
+
+```bash
+sed -n '1,360p' plans/aarch64-support.md
+sed -n '1,280p' pkgbuilds/omarchy-dev/PKGBUILD
+sed -n '1,320p' pkgbuilds/omarchy-settings-dev/PKGBUILD
+sed -n '1,320p' pkgbuilds/omarchy-keyring/PKGBUILD
+sed -n '1,320p' pkgbuilds/limine-mkinitcpio-hook/PKGBUILD
+sed -n '1,320p' pkgbuilds/limine-snapper-sync/PKGBUILD
+sed -n '1,320p' pkgbuilds/ttf-jetbrains-mono-nerd-basic/PKGBUILD
+sed -n '1,320p' pkgbuilds/quickshell-git/PKGBUILD
+```
+
+Validated PKGBUILD syntax and normalized metadata without building:
+
+```bash
+bash -n PKGBUILD
+makepkg --printsrcinfo
+```
+
+Queried synchronized Arch Linux ARM metadata and candidate package URLs:
+
+```bash
+expac -S '%r|%n|%v|%a|%D|%P' <dependency names>
+pacman -Si <dependency names>
+pacman -Sddp --print-format '%r|%n|%v|%a|%l' <dependency name>
+pacman -T <all direct runtime dependencies>
+```
+
+Rechecked the published Omarchy ARM repositories:
+
+```bash
+curl -L -sS -o /dev/null -w '%{http_code}' \
+  https://pkgs.omarchy.org/edge/aarch64/omarchy.db
+curl -L -sS -o /dev/null -w '%{http_code}' \
+  https://pkgs.omarchy.org/stable/aarch64/omarchy.db
+```
+
+Both returned HTTP 404. The complete categorized result is in
+[`dependency-audit.md`](dependency-audit.md).
