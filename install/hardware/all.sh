@@ -44,3 +44,9 @@ run_logged "$OMARCHY_INSTALL/hardware/fix-yt6801-ethernet-adapter.sh"
 run_logged "$OMARCHY_INSTALL/hardware/fix-tuxedo-backlight.sh"
 run_logged "$OMARCHY_INSTALL/hardware/speaker-tuning.sh"
 run_logged "$OMARCHY_INSTALL/hardware/pacman.sh"
+
+# Install this after all hardware package transactions so the initial target
+# setup does not rebuild the ARM64 initramfs several times. The ISO owns the
+# one final build after setup has written every hardware and hibernation
+# drop-in.
+run_logged "$OMARCHY_INSTALL/hardware/arm64-kernel.sh"
