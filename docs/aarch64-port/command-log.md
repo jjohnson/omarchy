@@ -4,6 +4,101 @@ This log records the commands and meaningful results from the first Quattro
 AArch64 desktop milestone. Commands are run as the normal user unless a
 privileged command is explicitly shown.
 
+## 2026-07-30: Phase 8 first AArch64 ISO
+
+The Phase 8 clone reproduced the Phase 7 package cache, clean pushed source
+branches, 979-package proof-host state, healthy desktop, and exact protected
+boot hashes.
+
+Removed an unsafe full-build dependency on the host's global pacman cache.
+The ISO entrypoint now mounts an architecture/channel-specific user cache
+under `~/.cache/omarchy/` and never clears `/var/cache/pacman/pkg`. Focused
+tests pass; the isolation change is pushed at `68e4bc4`.
+
+The first full build command was:
+
+```bash
+cd /home/jj/Projects/omarchy-iso-quattro-arm64
+./bin/omarchy-iso-make --arch aarch64 --no-boot-offer \
+  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
+  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+```
+
+It reached mkarchiso and exposed two concrete ARM live-media issues:
+
+```text
+memdisk required unavailable phram and memdiskfind
+arm64-efi GRUB lacked seven legacy keyboard/USB preload modules
+```
+
+Added an AArch64-only live-initramfs filter, made the live-root transaction
+build only the Archiso `linux-aarch64` preset, and applied a build-time patch
+to a temporary copy of pinned mkarchiso that omits unavailable ARM64 GRUB
+modules. The Archiso submodule remains unchanged. The fix and focused tests
+are pushed at `cfe5c34`.
+
+GRUB is only the ISO's generic UEFI launcher. Target bootstrap contains
+`limine` and no `grub`; the shipped installer rejects non-Limine target
+bootloader setup, installs `limine_aa64.efi`, and finalizes with
+`limine-update`.
+
+Repeated the same build command. The package closure resolved to 928 target
+packages, the ARM Archiso initramfs completed without an incomplete-image
+error, `BOOTAA64.EFI` was created, and xorriso wrote the ISO successfully.
+
+Inspected the artifact without booting it:
+
+```bash
+sha256sum release/omarchy-2026.07.30-aarch64-local.iso
+file release/omarchy-2026.07.30-aarch64-local.iso
+bsdtar -tf release/omarchy-2026.07.30-aarch64-local.iso
+fdisk -l release/omarchy-2026.07.30-aarch64-local.iso
+objdump -f <extracted-BOOTAA64.EFI>
+lsinitcpio -a <extracted-initramfs>
+docker run --rm --platform linux/arm64 \
+  -v <inspection-directory>:/inspect:ro \
+  menci/archlinuxarm:latest \
+  <read-only SquashFS and ESP inspection>
+```
+
+Validated result:
+
+```text
+ISO size:                    4,688,142,336 bytes
+ISO SHA-256:                 e579204b4c39fd36837c9a470bee4d7662bd04cda6ba39d546f46ad1fc4ca53c
+EFI launcher:                PE32+ ARM64, 7,778,304 bytes
+kernel:                      ARM64 Image, 7.1.5-2-aarch64-ARCH
+initramfs:                   successful Archiso image, 198,966,783 bytes
+live packages:               464
+target install closure:      928
+offline archives/DB entries: 1121/1121
+Gradle runtime archives:     0
+stock/T2 live kernels:       0
+x86 microcode packages:      0
+```
+
+The embedded SquashFS SHA-512 self-test passed. Its initramfs contains the
+Virtio GPU/network, ISO9660, SquashFS, OverlayFS, input, and storage support
+needed by the UTM profile. The two ISO copies of `BOOTAA64.EFI` match and the
+GPT contains a 16 MiB EFI System Partition.
+
+Copied the ISO to the macOS/UTM share and independently verified the same
+SHA-256:
+
+```text
+/home/jj/utm/omarchy-2026.07.30-aarch64-local.iso
+/home/jj/utm/omarchy-2026.07.30-aarch64-local.iso.sha256
+/home/jj/utm/quattro-phase8-iso-build-2.log
+```
+
+The host remained at 979 installed packages, and all four protected boot
+hashes, Quickshell IPC, Hyprland, direct VirGL, failed-unit counts, and the
+global pacman cache remained unchanged. The ISO was not booted in the build
+VM.
+
+Full details are in
+[`phase8-first-iso-build-2026-07-30.md`](phase8-first-iso-build-2026-07-30.md).
+
 ## 2026-07-30: Phase 7 package-only closure
 
 The Phase 7 clone reproduced the Phase 5 installed-system state and the
