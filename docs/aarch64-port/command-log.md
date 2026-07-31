@@ -4,6 +4,110 @@ This log records the commands and meaningful results from the first Quattro
 AArch64 desktop milestone. Commands are run as the normal user unless a
 privileged command is explicitly shown.
 
+## 2026-07-30: Phase 9 installer acceptance
+
+Created a separate UTM VM with a new blank disk and kept Phase 8 running as
+the 2-CPU, 4 GiB controller. The install test exposed four ARM-specific
+boundaries:
+
+```text
+zstd SquashFS unsupported by the Arch Linux ARM kernel
+live tty1 not mapped to the Virtio GPU framebuffer
+linux-aarch64 installs /boot/Image instead of a pkgbase vmlinuz
+firmware serial console selected by Plymouth ahead of the GPU
+```
+
+AArch64 live images now use XZ SquashFS and map tty1 to
+`virtio_gpudrmfb`. Target setup now installs a native ARM Limine updater and
+pacman hook, validates real Limine 12 Linux entries, keeps resumed user
+finalization from restoring offline pacman state, and adds
+`plymouth.ignore-serial-consoles` for a Virtio framebuffer. Added
+`spice-vdagent` to the authoritative base manifest.
+
+Validated UTM settings:
+
+```text
+display card:    virtio-gpu-gl-pci (GPU Supported)
+Auto Resolution: enabled
+serial device:   attached before boot
+```
+
+After staging the exact source fixes into the stopped installation and
+resuming finalization, the encrypted Btrfs target booted
+`7.1.5-2-aarch64-ARCH` through native Limine. The graphical window displayed
+the branded Omarchy LUKS prompt, accepted the password, and loaded the
+desktop. System and user failed-unit counts were zero.
+
+SPICE resize acceptance passed from `1280x800` to `800x600` and then
+`1512x909`; DRM preferred modes and Hyprland agreed. The final full-width bar
+and unclipped desktop are recorded at:
+
+```text
+/home/jj/utm/phase9-final-desktop-1512x909.png
+SHA-256: 2d6d49f5b34e434ac2597d1f1938c8a898a5bd6a5e55f2c1a80469da9a7232a5
+```
+
+Created Snapper snapshot 2, `Phase 9 graphical boot acceptance`. Its Limine
+entry uses `protocol: linux`, the ARM `Image` history asset, encrypted root,
+`rootflags=subvol=/@/.snapshots/2/snapshot`, and
+`plymouth.ignore-serial-consoles`.
+
+Committed the target changes as `dd1c4f42` and `7b8e2d90`, and the live
+installer changes as `191d576`. Focused tests, ISO architecture tests, and
+the full Omarchy shell suite pass.
+
+Built the integrated image:
+
+```bash
+cd /home/jj/Projects/omarchy-iso-quattro-arm64
+./bin/omarchy-iso-make --arch aarch64 --no-boot-offer \
+  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
+  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+```
+
+Read-only inspection proved ARM64 UEFI and kernel payloads, XZ SquashFS,
+complete initramfs hooks and modules, byte-identical EFI copies, a passing
+embedded SHA-512 self-test, 929 resolved target packages, and 1,123 matching
+offline archives/database entries. The inspected source and shared copy have
+the same SHA-256:
+
+```text
+/home/jj/utm/omarchy-2026.07.30-aarch64-local-phase9-integrated.iso
+size:    4,617,543,680 bytes
+SHA-256: 91d99878682b98b5232c7f73b4901a3f258eaecbb450e6ea1600456e8be97d88
+```
+
+A second new VM replayed the integrated artifact with 4 CPUs, 8 GiB RAM, and
+a new 64 GiB disk. The live display completed its expected brief inactive,
+resize, and black framebuffer handoff before loading the keyboard picker.
+The installer completed in 2 minutes 33 seconds with no stop or manual
+recovery.
+
+After clearing the still-attached ISO, the installed disk booted through
+Limine to the branded graphical Omarchy LUKS prompt. The password was
+accepted graphically, the desktop loaded with its complete top bar, and UTM
+window resizing smaller and larger adapted the desktop without clipping.
+
+The final recovery-path test passed. The clean installation created and
+listed a numbered Snapper snapshot, selected it from Limine's `Snapshots`
+menu, unlocked the encrypted root through the branded graphical prompt, and
+loaded the snapshot desktop. Rebooting through the normal Omarchy entry
+returned to the normal root without restoring the snapshot.
+
+Host clipboard traffic reached the active SPICE guest agent, but the agent's
+X11 clipboard did not become Hyprland's Wayland selection. Quattro's Lua
+clipboard bindings and Quickshell history work inside the guest; they are not
+a SPICE-to-Wayland transport. Comparison with Phase 8 traced its working host
+clipboard to unowned local forwarding services. The corresponding source
+experiment was reverted, so the integrated candidate contains no custom
+clipboard bridge. This is recorded as a Wayland/SPICE integration boundary
+rather than an ARM installer failure.
+
+Phase 9 installer acceptance is complete.
+
+Full details are in
+[`phase9-installer-acceptance-2026-07-30.md`](phase9-installer-acceptance-2026-07-30.md).
+
 ## 2026-07-30: Phase 8 first AArch64 ISO
 
 The Phase 8 clone reproduced the Phase 7 package cache, clean pushed source
