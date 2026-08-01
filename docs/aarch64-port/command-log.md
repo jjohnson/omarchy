@@ -4,6 +4,39 @@ This log records the commands and meaningful results from the first Quattro
 AArch64 desktop milestone. Commands are run as the normal user unless a
 privileged command is explicitly shown.
 
+## 2026-07-31: UTM media and optional host integration
+
+Recorded the post-acceptance ownership boundary for UTM-specific behavior.
+The core ISO must remain usable with a fixed guest display and no macOS
+clipboard. SSH, `scp`, `rsync`, Git, and Tailscale are the normal machine
+boundary; SPICE clipboard forwarding and live host-window-driven display modes
+are opt-in conveniences.
+
+UTM's running VM window exposes a removable drive-image menu even though the
+configuration editor is locked. The reliable installer handoff is to put the
+target disk before the ISO in boot order and eject the ISO from that live menu
+before selecting the installer's final `Reboot`. The captured menu shows
+`Eject` disabled only because its CD/DVD entry is already `none`.
+
+The macOS green-button menu is also host-side. `Full Screen > Entire Screen`
+places UTM in the dedicated-Space workflow; `Move & Resize`, tiling, and
+full-screen placement do not directly edit the guest. With UTM Auto Resolution
+enabled, a host-window change can become a new Virtio GPU preferred mode. The
+Omarchy Display panel separately controls logical scale and persists the
+generic monitor scale in `~/.config/hypr/monitors.lua`.
+
+Proposed a separately named repository/AUR package with independently enabled
+user services for dynamic resize and bidirectional X11/Wayland clipboard
+forwarding. Its names must use an independent, collision-checked namespace
+rather than `omarchy-*`. The extras must not overwrite
+`monitors.lua` or replace Quickshell's Wayland clipboard history. The current
+Phase 9 source still contains the proven resize helper; moving it and its
+autostart out of core is a follow-up, not a retroactive change to the Phase 9
+result.
+
+Full design:
+[`utm-host-integration-2026-07-31.md`](utm-host-integration-2026-07-31.md).
+
 ## 2026-07-30: Phase 9 installer acceptance
 
 Created a separate UTM VM with a new blank disk and kept Phase 8 running as

@@ -301,8 +301,38 @@ inside the guest. They do not provide a SPICE-to-Wayland transport. Comparison
 with Phase 8 traced its working host clipboard to an unowned pair of local
 X11/Wayland forwarding services. The corresponding source workaround was
 reverted and is not present in the integrated candidate. A proper fix belongs
-in a native SPICE Wayland clipboard backend or equivalent compositor-level
-Xwayland clipboard integration; it is not an AArch64 installer blocker.
+in an optional SPICE guest-integration package or, eventually, a native SPICE
+Wayland backend. XWayland alone does not bridge its X11 selection into the
+native Wayland clipboard. This is not an AArch64 installer blocker.
+
+## UTM Media and Host-Integration Decision
+
+The first integrated-image reboot returned to the keyboard picker only because
+the ISO remained attached. UTM locks its VM configuration editor while the VM
+is running, but the running VM window has a drive-image menu for removable
+media. The deterministic install handoff is to eject the ISO there before
+selecting `Reboot`. Putting the target disk before the ISO in the boot order is
+an additional safeguard: blank media falls through to the installer and the
+completed disk becomes the preferred boot target.
+
+The macOS green-button sizing menu controls the UTM window and its placement in
+macOS Spaces. `Full Screen > Entire Screen` provides the intended
+bare-metal-style dedicated Space. It does not edit Hyprland. UTM Auto
+Resolution may translate a host-window change into a new Virtio GPU preferred
+mode, while the Omarchy Display panel controls logical scale and persists it
+separately in `~/.config/hypr/monitors.lua`.
+
+After Phase 9 acceptance, host clipboard forwarding and host-window-driven
+display modes were classified as optional guest integrations rather than ISO
+requirements. The Phase 9 image still proves its bundled SPICE resize path;
+the intended follow-up is to extract that helper and implement the explicit
+X11/Wayland clipboard bridge in a separate AUR extras package. A fixed guest
+mode, the native Omarchy Display panel, and SSH/`scp`/`rsync` remain the core
+workflow.
+
+The complete boundary, service design, `monitors.lua` ownership, macOS sizing
+behavior, and live ISO-ejection procedure are documented in
+[`utm-host-integration-2026-07-31.md`](utm-host-integration-2026-07-31.md).
 
 ## Phase 8 Controller Proof
 
