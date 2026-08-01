@@ -82,13 +82,13 @@ Before installation, system files affected by the package scriptlet and every
 legacy unowned file that overlapped the package were backed up under:
 
 ```text
-/home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-install-system-2026-07-29
+~/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-install-system-2026-07-29
 ```
 
 User state relevant to finalization was archived at:
 
 ```text
-/home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-finalize-user-2026-07-29.tar
+~/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-finalize-user-2026-07-29.tar
 ```
 
 The first dry installation stopped on 13 unowned files from the 3.x install.

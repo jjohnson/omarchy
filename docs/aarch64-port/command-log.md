@@ -43,7 +43,7 @@ SPICE resize acceptance passed from `1280x800` to `800x600` and then
 and unclipped desktop are recorded at:
 
 ```text
-/home/jj/utm/phase9-final-desktop-1512x909.png
+~/utm/phase9-final-desktop-1512x909.png
 SHA-256: 2d6d49f5b34e434ac2597d1f1938c8a898a5bd6a5e55f2c1a80469da9a7232a5
 ```
 
@@ -59,10 +59,10 @@ the full Omarchy shell suite pass.
 Built the integrated image:
 
 ```bash
-cd /home/jj/Projects/omarchy-iso-quattro-arm64
+cd ~/Projects/omarchy-iso-quattro-arm64
 ./bin/omarchy-iso-make --arch aarch64 --no-boot-offer \
-  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+  --local-source ~/Projects/omarchy-quattro-arm64 \
+  ~/Projects/omarchy-pkgs-quattro-arm64
 ```
 
 Read-only inspection proved ARM64 UEFI and kernel payloads, XZ SquashFS,
@@ -72,7 +72,7 @@ offline archives/database entries. The inspected source and shared copy have
 the same SHA-256:
 
 ```text
-/home/jj/utm/omarchy-2026.07.30-aarch64-local-phase9-integrated.iso
+~/utm/omarchy-2026.07.30-aarch64-local-phase9-integrated.iso
 size:    4,617,543,680 bytes
 SHA-256: 91d99878682b98b5232c7f73b4901a3f258eaecbb450e6ea1600456e8be97d88
 ```
@@ -122,10 +122,10 @@ tests pass; the isolation change is pushed at `68e4bc4`.
 The first full build command was:
 
 ```bash
-cd /home/jj/Projects/omarchy-iso-quattro-arm64
+cd ~/Projects/omarchy-iso-quattro-arm64
 ./bin/omarchy-iso-make --arch aarch64 --no-boot-offer \
-  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+  --local-source ~/Projects/omarchy-quattro-arm64 \
+  ~/Projects/omarchy-pkgs-quattro-arm64
 ```
 
 It reached mkarchiso and exposed two concrete ARM live-media issues:
@@ -190,9 +190,9 @@ Copied the ISO to the macOS/UTM share and independently verified the same
 SHA-256:
 
 ```text
-/home/jj/utm/omarchy-2026.07.30-aarch64-local.iso
-/home/jj/utm/omarchy-2026.07.30-aarch64-local.iso.sha256
-/home/jj/utm/quattro-phase8-iso-build-2.log
+~/utm/omarchy-2026.07.30-aarch64-local.iso
+~/utm/omarchy-2026.07.30-aarch64-local.iso.sha256
+~/utm/quattro-phase8-iso-build-2.log
 ```
 
 The host remained at 979 installed packages, and all four protected boot
@@ -214,8 +214,8 @@ ARM metadata:
 
 ```bash
 ./bin/omarchy-iso-make --arch aarch64 --packages-only \
-  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+  --local-source ~/Projects/omarchy-quattro-arm64 \
+  ~/Projects/omarchy-pkgs-quattro-arm64
 ```
 
 The audit found 283 unique targets: Arch Linux ARM resolves 254 unchanged and
@@ -253,7 +253,7 @@ bsdtar -tf \
   ~/.cache/omarchy/iso_edge_aarch64/airootfs/var/cache/omarchy/mirror/offline/offline.db.tar.gz
 pacman -Qp <each locally built runtime archive>
 bsdtar -xOf <archive> .PKGINFO
-OMARCHY_PKGS_PATH=/home/jj/Projects/omarchy-pkgs-quattro-arm64 \
+OMARCHY_PKGS_PATH=~/Projects/omarchy-pkgs-quattro-arm64 \
   ./test/architecture-test.sh
 bash -n bin/omarchy-iso-make builder/architecture.sh \
   builder/build-iso.sh builder/build-omarchy-packages.sh
@@ -370,8 +370,8 @@ python -m py_compile <changed installer Python files>
 ./test/architecture-test.sh
 ./test/shell.d/pacman-config-test.sh
 ./test/shell.d/mise-work-architecture-test.sh
-OMARCHY_PKGS_PATH=/home/jj/Projects/omarchy-pkgs-quattro-arm64 \
-OMARCHY_ISO_PATH=/home/jj/Projects/omarchy-iso-quattro-arm64 \
+OMARCHY_PKGS_PATH=~/Projects/omarchy-pkgs-quattro-arm64 \
+OMARCHY_ISO_PATH=~/Projects/omarchy-iso-quattro-arm64 \
   ./test/shell
 git diff --check
 ```
@@ -390,8 +390,8 @@ Read the complete validated 3.x UTM procedure before inspecting or changing the
 guest:
 
 ```bash
-sed -n '1,240p' /home/jj/utm/arm64-utm-3x-happy-path.md
-sed -n '241,520p' /home/jj/utm/arm64-utm-3x-happy-path.md
+sed -n '1,240p' ~/utm/arm64-utm-3x-happy-path.md
+sed -n '241,520p' ~/utm/arm64-utm-3x-happy-path.md
 ```
 
 Result: confirmed the known-good Archboot, Btrfs, Limine, VirGL, Hyprland,
@@ -506,10 +506,10 @@ The other repositories were cloned into separate worktrees:
 
 ```bash
 git clone https://github.com/omacom-io/omarchy-pkgs.git \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+  ~/Projects/omarchy-pkgs-quattro-arm64
 git clone --branch quattro --single-branch \
   https://github.com/omacom-io/omarchy-iso.git \
-  /home/jj/Projects/omarchy-iso-quattro-arm64
+  ~/Projects/omarchy-iso-quattro-arm64
 ```
 
 Repository-local instruction discovery:
@@ -592,8 +592,8 @@ recipe was cloned and pinned:
 ```bash
 git clone \
   https://gitlab.archlinux.org/archlinux/packaging/packages/gradle.git \
-  /home/jj/Projects/gradle-arch-package-arm64
-git -C /home/jj/Projects/gradle-arch-package-arm64 rev-parse HEAD
+  ~/Projects/gradle-arch-package-arm64
+git -C ~/Projects/gradle-arch-package-arm64 rev-parse HEAD
 ```
 
 Result:
@@ -629,12 +629,12 @@ The Omarchy dev packages were built from the exact local development checkout,
 not the moving upstream `quattro` branch:
 
 ```bash
-cd /home/jj/Projects/omarchy-pkgs-quattro-arm64/pkgbuilds/omarchy-settings-dev
-OMARCHY_SRC=/home/jj/Projects/omarchy-quattro-arm64 \
+cd ~/Projects/omarchy-pkgs-quattro-arm64/pkgbuilds/omarchy-settings-dev
+OMARCHY_SRC=~/Projects/omarchy-quattro-arm64 \
   makepkg --cleanbuild --force --nodeps --noconfirm
 
-cd /home/jj/Projects/omarchy-pkgs-quattro-arm64/pkgbuilds/omarchy-dev
-OMARCHY_SRC=/home/jj/Projects/omarchy-quattro-arm64 \
+cd ~/Projects/omarchy-pkgs-quattro-arm64/pkgbuilds/omarchy-dev
+OMARCHY_SRC=~/Projects/omarchy-quattro-arm64 \
   makepkg --cleanbuild --force --nodeps --noconfirm
 ```
 
@@ -706,7 +706,7 @@ Backed up the boot/config files and user state that could be affected:
 ```bash
 pkexec <scoped backup and pacman transaction helper>
 tar -cf \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-finalize-user-2026-07-29.tar \
+  ~/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-finalize-user-2026-07-29.tar \
   <existing user state paths>
 ```
 
@@ -717,7 +717,7 @@ files with the package payload, the final transaction used exact
 
 ```bash
 pkexec \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/install-aarch64-runtime.sh
+  ~/Projects/omarchy-pkgs-quattro-arm64/build-output/install-aarch64-runtime.sh
 ```
 
 The local packages and their four official runtime dependencies installed
@@ -786,8 +786,8 @@ crash or QML fatal error. The current UWSM manager still had this 3.x
 environment:
 
 ```text
-OMARCHY_PATH=/home/jj/.local/share/omarchy
-PATH=...:/home/jj/.local/share/omarchy/bin:...:/usr/bin:...
+OMARCHY_PATH=~/.local/share/omarchy
+PATH=...:$HOME/.local/share/omarchy/bin:...:/usr/bin:...
 ```
 
 The Indicators widget consequently ran the legacy
@@ -876,7 +876,7 @@ Limine configuration, mkinitcpio configuration and preset, and every file
 overwritten by the settings package scriptlet were placed under:
 
 ```text
-/home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-install-system-2026-07-29/
+~/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-install-system-2026-07-29/
 ```
 
 ## 2026-07-30: Persistent session cutover preparation
@@ -889,8 +889,8 @@ units.
 Archived the user state that the cutover could affect:
 
 ```bash
-tar -C /home/jj -cpf \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-persistent-cutover-2026-07-30-002942.tar \
+tar -C ~ -cpf \
+  ~/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-persistent-cutover-2026-07-30-002942.tar \
   .bashrc .bash_profile .config/hypr .config/uwsm .config/omarchy \
   .config/autostart .config/systemd/user .local/state/omarchy
 ```
@@ -908,8 +908,8 @@ Lua entrypoints, and verified the new config explicitly:
 hyprctl keyword misc:disable_autoreload true
 env OMARCHY_PATH=/usr/share/omarchy PATH=/usr/bin:/bin \
   omarchy-refresh-hyprland
-env HOME=/home/jj OMARCHY_PATH=/usr/share/omarchy PATH=/usr/bin:/bin \
-  Hyprland --verify-config --config /home/jj/.config/hypr/hyprland.lua
+env HOME="$HOME" OMARCHY_PATH=/usr/share/omarchy PATH=/usr/bin:/bin \
+  Hyprland --verify-config --config ~/.config/hypr/hyprland.lua
 hyprctl keyword misc:disable_autoreload false
 ```
 
@@ -1222,14 +1222,14 @@ per-package matrix is in `dependency-audit.md`.
 Archived the exact pre-cutover configuration and unit symlinks:
 
 ```text
-/home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/system-network-state.tar
+~/.local/state/omarchy/phase2-network-backup-20260730-021354/system-network-state.tar
 SHA-256: 2aa6f88a1eccfde208a0050046c5f7b758a3b16428a65ed2be2878ee54e2e5ec
 ```
 
 Created and syntax-checked the root rollback command:
 
 ```text
-/home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/rollback-to-networkd
+~/.local/state/omarchy/phase2-network-backup-20260730-021354/rollback-to-networkd
 SHA-256: 0bfd3385d18d58064b6d5f370af1fa232e429ca24b2d945b5b20642b386e9c99
 ```
 
@@ -1237,7 +1237,7 @@ The rollback can be invoked from a local terminal or TTY with:
 
 ```bash
 pkexec \
-  /home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/rollback-to-networkd
+  ~/.local/state/omarchy/phase2-network-backup-20260730-021354/rollback-to-networkd
 ```
 
 Updated `~/utm/QUATTRO-ARM64-RECOVERY-PROMPT.md` with the working clone,
@@ -1280,7 +1280,7 @@ rollback, not a service failure.
 Repeated the transition with the validated atomic command:
 
 ```text
-/home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/cutover-to-networkmanager
+~/.local/state/omarchy/phase2-network-backup-20260730-021354/cutover-to-networkmanager
 SHA-256: 7bb9bdb13922ad95ad4178e187edc0998e57cbdba3c862c9eb0c5c3c4b875f2f
 ```
 
@@ -1314,7 +1314,7 @@ The replacement Quickshell process returned `ok` and logged no warnings. The
 network panel screenshot was visually inspected at:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_02-28-47.png
+~/Pictures/screenshot-2026-07-30_02-28-47.png
 ```
 
 It showed the active Ethernet address and gateway, traffic, latency, packet
@@ -1380,7 +1380,7 @@ zero failed units.
 Summoned and visually inspected the post-reboot network panel:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_02-38-48.png
+~/Pictures/screenshot-2026-07-30_02-38-48.png
 ```
 
 The panel showed the active `.4` address, `.1` gateway, traffic, 12 ms latency,
@@ -1525,7 +1525,7 @@ Created a recoverable archive of every collided path before moving the
 unowned files:
 
 ```text
-/home/jj/.local/state/omarchy/phase3-collision-backup-20260730-031300/legacy-collision-files.tar
+~/.local/state/omarchy/phase3-collision-backup-20260730-031300/legacy-collision-files.tar
 SHA-256: ed13dd2d873bbe963896906b313b4e48a447f3739d82a6cb554e9f3b2275fd7c
 ```
 
@@ -1596,7 +1596,7 @@ The SDK provides `dotnet-host`, `dotnet-runtime`,
 dependency checks. Pinta launched through UWSM and its UI was inspected at:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_03-26-51.png
+~/Pictures/screenshot-2026-07-30_03-26-51.png
 ```
 
 Package-repository commits `f49bdf2` and `d95da3e` are pushed.
@@ -1610,7 +1610,7 @@ revision 2 normalizes every icon directory to `0755`.
 Before installation, the existing unowned ARM AppImage was moved to:
 
 ```text
-/home/jj/.local/state/omarchy/phase3-collision-backup-20260730-031300/moved-unowned/obsidian-legacy.AppImage
+~/.local/state/omarchy/phase3-collision-backup-20260730-031300/moved-unowned/obsidian-legacy.AppImage
 ```
 
 Final artifact:
@@ -1625,7 +1625,7 @@ The package owns 36 files with none missing and provides the manifest name
 `/dev/dri/renderD128`, and showed no clipping or layout defects:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_03-34-34.png
+~/Pictures/screenshot-2026-07-30_03-34-34.png
 ```
 
 Package-repository commits `8ed9c0d` and `9468558` are pushed.
@@ -1667,7 +1667,7 @@ OBS held `/dev/dri/renderD128`, had no software renderer overrides, and shut
 down with zero reported memory leaks. Visual reference:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_03-59-07.png
+~/Pictures/screenshot-2026-07-30_03-59-07.png
 ```
 
 Package-repository commits `8f6bc12` and `d0f3fdc` are pushed.
@@ -1745,7 +1745,7 @@ bluez bluez-tools fakeroot libsecret pacman-contrib wireplumber
 Created a complete rollback bundle at:
 
 ```text
-/home/jj/.local/state/omarchy/phase4-retired-ui-backup-20260730-044500/
+~/.local/state/omarchy/phase4-retired-ui-backup-20260730-044500/
 ```
 
 The first inspected transaction removed 19 requested retired UI packages and
@@ -1824,9 +1824,9 @@ The Quickshell root menu, notification surface, and a newly launched terminal
 passed visual inspection:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_05-11-17.png
-/home/jj/Pictures/screenshot-2026-07-30_05-11-25.png
-/home/jj/Pictures/screenshot-2026-07-30_05-11-52.png
+~/Pictures/screenshot-2026-07-30_05-11-17.png
+~/Pictures/screenshot-2026-07-30_05-11-25.png
+~/Pictures/screenshot-2026-07-30_05-11-52.png
 ```
 
 Lua workspace dispatch moved from workspace 1 to 3 and back. The user resized
@@ -1884,7 +1884,7 @@ matrix is in `docs/aarch64-port/phase5-system-integration-2026-07-30.md`.
 Created the mode-`0700`, 9.6 MiB rollback bundle:
 
 ```text
-/home/jj/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/
+~/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/
 ```
 
 It contains cached signed packages, database records, the non-directory
@@ -1919,7 +1919,7 @@ The Quickshell network panel passed visual inspection after dismissing the
 unrelated migration notification that initially overlapped it:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_05-45-41.png
+~/Pictures/screenshot-2026-07-30_05-45-41.png
 ```
 
 Quickshell, Hyprland, audio, SPICE, Retina scale 2, dynamic resize, and direct
@@ -1960,9 +1960,9 @@ were no software-rendering overrides or failed system/user units.
 Post-reboot visual evidence:
 
 ```text
-network panel: /home/jj/Pictures/screenshot-2026-07-30_05-56-34.png
-root menu:     /home/jj/Pictures/screenshot-2026-07-30_05-56-52.png
-terminal:      /home/jj/Pictures/screenshot-2026-07-30_05-57-21.png
+network panel: ~/Pictures/screenshot-2026-07-30_05-56-34.png
+root menu:     ~/Pictures/screenshot-2026-07-30_05-56-52.png
+terminal:      ~/Pictures/screenshot-2026-07-30_05-57-21.png
 ```
 
 The network panel showed the active Ethernet address, gateway, traffic,

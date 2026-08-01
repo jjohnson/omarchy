@@ -136,10 +136,10 @@ the target Limine, encryption, snapshot, or rollback workflow.
 The second full command was:
 
 ```bash
-cd /home/jj/Projects/omarchy-iso-quattro-arm64
+cd ~/Projects/omarchy-iso-quattro-arm64
 ./bin/omarchy-iso-make --arch aarch64 --no-boot-offer \
-  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+  --local-source ~/Projects/omarchy-quattro-arm64 \
+  ~/Projects/omarchy-pkgs-quattro-arm64
 ```
 
 The package builder reused the completed native artifacts. The source-backed
@@ -168,7 +168,7 @@ initramfs error.
 The complete build log is:
 
 ```text
-/home/jj/utm/quattro-phase8-iso-build-2.log
+~/utm/quattro-phase8-iso-build-2.log
 ```
 
 ## Artifact Inspection
@@ -176,7 +176,7 @@ The complete build log is:
 The generated artifact is:
 
 ```text
-/home/jj/Projects/omarchy-iso-quattro-arm64/release/omarchy-2026.07.30-aarch64-local.iso
+~/Projects/omarchy-iso-quattro-arm64/release/omarchy-2026.07.30-aarch64-local.iso
 size:    4,688,142,336 bytes
 SHA-256: e579204b4c39fd36837c9a470bee4d7662bd04cda6ba39d546f46ad1fc4ca53c
 label:   OMARCHY_202607
@@ -240,8 +240,8 @@ the kernel, Quickshell, both Omarchy packages, and the two Limine helpers.
 The ISO was copied to the macOS/UTM shared directory:
 
 ```text
-/home/jj/utm/omarchy-2026.07.30-aarch64-local.iso
-/home/jj/utm/omarchy-2026.07.30-aarch64-local.iso.sha256
+~/utm/omarchy-2026.07.30-aarch64-local.iso
+~/utm/omarchy-2026.07.30-aarch64-local.iso.sha256
 ```
 
 An independent read-back produced the same SHA-256 as the in-VM source. This

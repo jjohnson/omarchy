@@ -48,8 +48,8 @@ The ISO source now accepts:
 
 ```bash
 ./bin/omarchy-iso-make --arch aarch64 --packages-only \
-  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+  --local-source ~/Projects/omarchy-quattro-arm64 \
+  ~/Projects/omarchy-pkgs-quattro-arm64
 ```
 
 The builder:

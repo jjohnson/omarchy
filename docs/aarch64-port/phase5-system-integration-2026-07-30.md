@@ -183,7 +183,7 @@ Before the VM transaction, the exact package, service, and network state was
 captured at:
 
 ```text
-/home/jj/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/
+~/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/
 ```
 
 The mode-`0700` directory is approximately 9.6 MiB. It includes:
@@ -206,7 +206,7 @@ Important hashes:
 Rollback from a working desktop or TTY:
 
 ```bash
-/home/jj/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/rollback
+~/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/rollback
 ```
 
 The rollback elevates through `pkexec`, reinstalls the three cached packages,
@@ -226,7 +226,7 @@ The live drop-in still matched its recorded hash immediately before mutation.
 It was moved, not deleted, to:
 
 ```text
-/home/jj/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/retired-live-config/iwd.conf
+~/.local/state/omarchy/phase5-iwd-retirement-backup-20260730-053447/retired-live-config/iwd.conf
 ```
 
 NetworkManager configuration was reloaded after the move. The effective
@@ -298,7 +298,7 @@ The native Quickshell network panel showed Ethernet, the `.4` address, `.1`
 gateway, traffic, latency, packet loss, and DNS controls without clipping:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_05-45-41.png
+~/Pictures/screenshot-2026-07-30_05-45-41.png
 ```
 
 The first panel capture coincided with the persistent migration notification,
@@ -346,7 +346,7 @@ journal. NetworkManager emitted no warning-level current-boot messages.
 
 `greetd`, Hyprland, Quickshell, PipeWire, PipeWire Pulse, WirePlumber, and
 both SPICE agents returned normally. The current-boot journal shows Hyprland
-selecting `/home/jj/.config/hypr/hyprland.lua`. UWSM exported
+selecting `~/.config/hypr/hyprland.lua`. UWSM exported
 `OMARCHY_PATH=/usr/share/omarchy`. Exactly one Quickshell process and one
 package-owned SPICE resize helper were direct Hyprland children. No retired UI
 process returned, no software-rendering override was present, and both system
@@ -356,9 +356,9 @@ The post-reboot Quickshell network panel, root menu, and newly launched
 terminal passed visual inspection:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_05-56-34.png
-/home/jj/Pictures/screenshot-2026-07-30_05-56-52.png
-/home/jj/Pictures/screenshot-2026-07-30_05-57-21.png
+~/Pictures/screenshot-2026-07-30_05-56-34.png
+~/Pictures/screenshot-2026-07-30_05-56-52.png
+~/Pictures/screenshot-2026-07-30_05-57-21.png
 ```
 
 The network panel contained the active Ethernet address, gateway, traffic,

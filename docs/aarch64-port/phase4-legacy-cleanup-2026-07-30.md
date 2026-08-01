@@ -57,7 +57,7 @@ local omarchy_monitor_scale = 2
 The prior file is preserved at:
 
 ```text
-/home/jj/.config/hypr/monitors.lua.bak.phase4-retina-20260730-043454
+~/.config/hypr/monitors.lua.bak.phase4-retina-20260730-043454
 ```
 
 The host-driven resize acceptance check ended at:
@@ -77,7 +77,7 @@ host's dynamic physical mode.
 Visual reference:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_04-35-44.png
+~/Pictures/screenshot-2026-07-30_04-35-44.png
 ```
 
 ## Retired-Package Audit
@@ -163,8 +163,8 @@ deleted.
 Quickshell's root menu and notification surfaces rendered cleanly afterward:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_04-53-12.png
-/home/jj/Pictures/screenshot-2026-07-30_04-53-33.png
+~/Pictures/screenshot-2026-07-30_04-53-12.png
+~/Pictures/screenshot-2026-07-30_04-53-33.png
 ```
 
 ## Batch 2: Replaced Utilities
@@ -197,7 +197,7 @@ directory. Quattro's screenshot command still worked after the retired
 capture packages were gone:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_04-57-53.png
+~/Pictures/screenshot-2026-07-30_04-57-53.png
 ```
 
 The legacy `hypridle.conf` and `hyprlock.conf` files remain in place as
@@ -210,7 +210,7 @@ manifest, cached official package archive, and relevant user configuration
 was captured before removal:
 
 ```text
-/home/jj/.local/state/omarchy/phase4-retired-ui-backup-20260730-044500/
+~/.local/state/omarchy/phase4-retired-ui-backup-20260730-044500/
 ```
 
 The complete directory is approximately 486 MiB. Important archive hashes:
@@ -281,7 +281,7 @@ greetd -> start-hyprland -> Hyprland
                              `- omarchy-hyprland-spice-resize
 ```
 
-Hyprland selected `/home/jj/.config/hypr/hyprland.lua`, UWSM exported
+Hyprland selected `~/.config/hypr/hyprland.lua`, UWSM exported
 `OMARCHY_PATH=/usr/share/omarchy`, and exactly one package-owned SPICE resize
 helper ran as a direct Hyprland child. The current-boot journals contained no
 Quickshell warnings, Hyprland errors, or `greetd` errors.
@@ -324,9 +324,9 @@ Runtime proof after reboot:
 Visual references:
 
 ```text
-menu:         /home/jj/Pictures/screenshot-2026-07-30_05-11-17.png
-notification: /home/jj/Pictures/screenshot-2026-07-30_05-11-25.png
-terminal:     /home/jj/Pictures/screenshot-2026-07-30_05-11-52.png
+menu:         ~/Pictures/screenshot-2026-07-30_05-11-17.png
+notification: ~/Pictures/screenshot-2026-07-30_05-11-25.png
+terminal:     ~/Pictures/screenshot-2026-07-30_05-11-52.png
 ```
 
 The display initially returned at `3024x1818@60`, scale 2. The user then

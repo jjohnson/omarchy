@@ -114,7 +114,7 @@ Those fixes are pushed as atomic package-repository commits:
 Before replacement, every collided path was archived at:
 
 ```text
-/home/jj/.local/state/omarchy/phase3-collision-backup-20260730-031300/legacy-collision-files.tar
+~/.local/state/omarchy/phase3-collision-backup-20260730-031300/legacy-collision-files.tar
 SHA-256: ed13dd2d873bbe963896906b313b4e48a447f3739d82a6cb554e9f3b2275fd7c
 ```
 
@@ -181,21 +181,21 @@ Pinta uses an architecture-selected .NET runtime identifier and updates
 rendered cleanly:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_03-26-51.png
+~/Pictures/screenshot-2026-07-30_03-26-51.png
 ```
 
 The existing unowned Obsidian ARM AppImage was moved intact before the
 package-owned launcher was installed:
 
 ```text
-/home/jj/.local/state/omarchy/phase3-collision-backup-20260730-031300/moved-unowned/obsidian-legacy.AppImage
+~/.local/state/omarchy/phase3-collision-backup-20260730-031300/moved-unowned/obsidian-legacy.AppImage
 ```
 
 The packaged application launched on the desktop, held
 `/dev/dri/renderD128`, and passed visual inspection:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_03-34-34.png
+~/Pictures/screenshot-2026-07-30_03-34-34.png
 ```
 
 OBS is built without the optional Chromium browser plugin because upstream's
@@ -221,7 +221,7 @@ The corrected OBS launch proved:
 Visual reference:
 
 ```text
-/home/jj/Pictures/screenshot-2026-07-30_03-59-07.png
+~/Pictures/screenshot-2026-07-30_03-59-07.png
 ```
 
 DeckLink, VAAPI encoding, and virtual-camera warnings are expected for this

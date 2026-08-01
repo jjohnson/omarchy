@@ -34,7 +34,7 @@ The user configuration and state affected by the cutover were archived before
 any changes:
 
 ```text
-/home/jj/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-persistent-cutover-2026-07-30-002942.tar
+~/Projects/omarchy-pkgs-quattro-arm64/build-output/pre-persistent-cutover-2026-07-30-002942.tar
 ```
 
 Archive size and SHA-256:
@@ -94,7 +94,7 @@ Armarchy compatibility files remain in place for reference and rollback.
 Hyprland's current-session log established the selection rule:
 
 ```text
-[cfg] Lua config not found, using legacy config at /home/jj/.config/hypr/hyprland.conf
+[cfg] Lua config not found, using legacy config at ~/.config/hypr/hyprland.conf
 ```
 
 With `hyprland.lua` now present, the next Hyprland start should select the Lua

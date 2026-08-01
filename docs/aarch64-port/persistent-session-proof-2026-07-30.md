@@ -45,8 +45,8 @@ XDG_SESSION_TYPE=wayland
 Hyprland's current-boot log contained:
 
 ```text
-[cfg] Regular config at /home/jj/.config/hypr/hyprland.lua
-[cfg] Using lua config found at /home/jj/.config/hypr/hyprland.lua
+[cfg] Regular config at ~/.config/hypr/hyprland.lua
+[cfg] Using lua config found at ~/.config/hypr/hyprland.lua
 ```
 
 The normal startup process relationship was:

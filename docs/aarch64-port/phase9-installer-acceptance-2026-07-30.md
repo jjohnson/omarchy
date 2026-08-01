@@ -140,7 +140,7 @@ The user changed the UTM window from `1280x800` to `800x600`, then to
 The final desktop had a complete full-width top bar and no clipping:
 
 ```text
-/home/jj/utm/phase9-final-desktop-1512x909.png
+~/utm/phase9-final-desktop-1512x909.png
 SHA-256: 2d6d49f5b34e434ac2597d1f1938c8a898a5bd6a5e55f2c1a80469da9a7232a5
 ```
 
@@ -204,16 +204,16 @@ metadata for `omarchy-update-system-pkgs-when-conflicted`.
 The committed fixes were rebuilt together with:
 
 ```bash
-cd /home/jj/Projects/omarchy-iso-quattro-arm64
+cd ~/Projects/omarchy-iso-quattro-arm64
 ./bin/omarchy-iso-make --arch aarch64 --no-boot-offer \
-  --local-source /home/jj/Projects/omarchy-quattro-arm64 \
-  /home/jj/Projects/omarchy-pkgs-quattro-arm64
+  --local-source ~/Projects/omarchy-quattro-arm64 \
+  ~/Projects/omarchy-pkgs-quattro-arm64
 ```
 
 Artifact:
 
 ```text
-/home/jj/utm/omarchy-2026.07.30-aarch64-local-phase9-integrated.iso
+~/utm/omarchy-2026.07.30-aarch64-local-phase9-integrated.iso
 size:    4,617,543,680 bytes
 SHA-256: 91d99878682b98b5232c7f73b4901a3f258eaecbb450e6ea1600456e8be97d88
 ```
@@ -247,7 +247,7 @@ The shared copy was read back independently and produced the same SHA-256.
 Its checksum sidecar is:
 
 ```text
-/home/jj/utm/omarchy-2026.07.30-aarch64-local-phase9-integrated.iso.sha256
+~/utm/omarchy-2026.07.30-aarch64-local-phase9-integrated.iso.sha256
 ```
 
 ## Clean Integrated-Image Replay

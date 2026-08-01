@@ -63,7 +63,7 @@ The complete pre-cutover network configuration and enablement symlinks were
 archived before installing packages:
 
 ```text
-/home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/system-network-state.tar
+~/.local/state/omarchy/phase2-network-backup-20260730-021354/system-network-state.tar
 SHA-256: 2aa6f88a1eccfde208a0050046c5f7b758a3b16428a65ed2be2878ee54e2e5ec
 ```
 
@@ -71,7 +71,7 @@ The rollback command is:
 
 ```bash
 pkexec \
-  /home/jj/.local/state/omarchy/phase2-network-backup-20260730-021354/rollback-to-networkd
+  ~/.local/state/omarchy/phase2-network-backup-20260730-021354/rollback-to-networkd
 ```
 
 Its SHA-256 is:
