@@ -35,6 +35,46 @@ Post-acceptance clipboard, display, microphone, removable-media, and shell UI
 observations belong to the Acceptance VM unless a section explicitly describes
 the earlier recovered installer VM.
 
+### Active Acceptance Reverification
+
+On 2026-08-14, narrow temporary SSH access was restored from the Phase 8
+controller to the running Acceptance VM for a read-only lineage and health
+audit. The guest reported:
+
+```text
+hostname:              omarchy
+virtualization:        QEMU
+architecture:          aarch64
+Omarchy build:         4.0.0.r1493.g7b8e2d9
+runtime owner:         omarchy-dev 4.0.0.r1493.g7b8e2d9-1
+disk:                  64 GiB Virtio
+ESP:                   2 GiB vfat
+root:                  62 GiB LUKS -> Btrfs
+Armarchy packages:     none
+legacy source checkout: absent
+failed system units:   0
+failed user units:     0
+```
+
+The installed source level `7b8e2d9` is the integrated-image package build and
+is distinct from the migrated Phase 8 controller's older `227b6e0` package
+build. The install log ends with successful ARM64 kernel setup, Limine
+finalization, system setup, and user finalization on 2026-07-30. NetworkManager,
+systemd-resolved, the display manager, PipeWire, WirePlumber, Hyprland, and the
+single package-owned Quickshell process were active.
+
+This independently verifies that the active Acceptance guest is the clean
+Phase 9 installation, not the Armarchy-derived controller. The UTM bundle name
+and the untouched status of the stopped Installer-Test-Working clone remain
+host-observed inventory because a guest cannot report its enclosing UTM bundle
+name.
+
+After the audit, the exact temporary controller key was removed, its now-empty
+`.ssh` directory was removed, the temporary key server was stopped, SSH was
+stopped again, and the narrow firewall rules on both VMs were deleted. The
+Acceptance VM remained reachable on the guest network while TCP port 22 was
+filtered.
+
 The UTM display settings validated during this phase are:
 
 ```text
