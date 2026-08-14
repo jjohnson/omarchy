@@ -10,6 +10,31 @@ Phase 8 remained running as the 2-CPU, 4 GiB controller. Phase 9 was created
 as a separate disposable UTM virtual machine with a new blank disk. No proof,
 package-closure, build, or prior installed-system disk was attached to it.
 
+## VM Lineage and Preservation
+
+The final integrated-image replay began as the new 4-CPU, 8 GiB, 64 GiB
+blank-disk VM described below, not as a clone of Phase 8 or any
+Armarchy-derived checkpoint. After the clean install, normal boot, snapshot
+boot, and return-to-normal-root tests passed, its accepted state was preserved
+as a separate untouched clone while the working instance continued into
+post-acceptance use.
+
+The UTM inventory is intentionally preserved as:
+
+```text
+Quattro-ARM64-Phase-9-Installer-Test-Working-2026-07-30
+  untouched clone of the accepted clean installer-test checkpoint
+
+Quattro-ARM64-Phase-9-Acceptance-2026-07-30
+  active duplicate used for post-acceptance testing and normal Quattro use
+```
+
+Both Phase 9 VMs therefore have the same clean integrated-ISO lineage. The
+Acceptance VM is not descended from the migrated Armarchy/Phase 8 controller.
+Post-acceptance clipboard, display, microphone, removable-media, and shell UI
+observations belong to the Acceptance VM unless a section explicitly describes
+the earlier recovered installer VM.
+
 The UTM display settings validated during this phase are:
 
 ```text
@@ -252,7 +277,9 @@ Its checksum sidecar is:
 
 ## Clean Integrated-Image Replay
 
-A second new UTM VM used the integrated ISO with:
+The clean state later preserved in
+`Quattro-ARM64-Phase-9-Installer-Test-Working-2026-07-30` was produced by a
+second new UTM VM using the integrated ISO with:
 
 ```text
 CPU:                    4
