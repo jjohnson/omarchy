@@ -32,23 +32,78 @@ A user who wants tighter host integration can install it deliberately.
 
 ## Installation-Media Handoff
 
-UTM's VM configuration editor is locked while a VM is running, but removable
-media can be managed from the running VM window's drive-image menu. `Eject` is
-unavailable when the CD/DVD entry is already `none`; it becomes available
-while an ISO is mounted.
+UTM's VM configuration editor is locked while a VM is running. Its drive-image
+menu can normally manage removable media, but a running Linux guest may lock a
+mounted CD/DVD and cause UTM's live `Eject` action to fail. Unmounting the
+filesystem in the guest only stops Linux from using it; it does not clear the
+ISO from UTM's virtual drive.
+
+Do not force-clear the Omarchy installer ISO while its live environment is
+running. The ISO does not use `copytoram`: the ArchISO boot mount and SquashFS
+live root continue to depend on the optical media.
 
 Use both of these safeguards for an installation VM:
 
 1. Put the blank target disk before the ISO in the UEFI boot order. Firmware
    falls through to the ISO while the disk is not bootable, then prefers the
    installed disk after setup.
-2. Before selecting the installer's final `Reboot`, open the running VM's
-   drive-image menu and eject the ISO. This is the deterministic handoff and
-   does not require opening the locked configuration editor.
+2. After installation succeeds, cleanly power off the live environment rather
+   than forcing its media out. While the VM is stopped, choose `Clear` for the
+   CD/DVD image in UTM, then start the VM and boot the installed disk. This is
+   the deterministic handoff.
+
+Until the installer's success screen offers a dedicated power-off action,
+leave its final reboot prompt and run `poweroff` from a live or serial shell.
+Guest-side `eject /dev/sr0` is appropriate for an ordinary mounted data disc,
+but not for the ISO that backs the running live system.
 
 Leaving the ISO attached can return the VM to the installer keyboard screen.
-If that happens, no target repair is required: eject or clear the ISO and boot
-the installed disk again.
+If that happens, no target repair is required: cleanly power off, clear the ISO
+from UTM, and boot the installed disk again.
+
+## Distributable UTM Template
+
+The ISO cannot configure UTM from inside the guest. A preconfigured `.utm`
+bundle may instead be published as an optional companion download for Apple
+Silicon users. It is a host convenience, not part of the portable Omarchy ISO
+or a requirement for installing on other AArch64 machines.
+
+Use this drive layout in the template:
+
+| Order | Purpose | Image type | Interface |
+| --- | --- | --- | --- |
+| 1 | Blank 64 GiB target | `Disk Image` | `VirtIO` |
+| 2 | Omarchy installer | `CD/DVD (ISO) Image` | `USB` |
+
+UTM treats the first type as a non-removable system disk and the second as
+removable optical media. The interface only selects the emulated bus; changing
+the installer from USB to SCSI does not make live ejection safe. Do not use the
+deprecated `BIOS`, `Linux Kernel`, `Linux RAM Disk`, or `Linux Device Tree
+Binary` image types for the normal UEFI installation path.
+
+The template's CD/DVD drive must initially be empty. UTM stores removable
+media as a bookmark to an external host file, so a template that points to its
+creator's ISO path is not portable. After opening the template, the user
+selects the separately downloaded and checksum-verified ISO for that empty
+drive. The ISO remains a separate release artifact and can be updated without
+rebuilding the template.
+
+If a template is released, publish the stopped `.utm` bundle as a separate
+archive and record the UTM version used to create and test it. It should also
+include the Phase 9-proven CPU, memory, UEFI, display, network, sound, and
+serial defaults, while keeping clipboard forwarding and host-window resize
+helpers optional under the guest-extras boundary described below.
+
+Keep UTM on an input-capable sound backend rather than selecting CoreAudio,
+which UTM documents as output-only. macOS may request microphone permission on
+first use; restart UTM after granting it. Phase 9 then exposed the emulated
+duplex input through PipeWire/WirePlumber and passed microphone recording and
+playback. This requires no SPICE clipboard bridge or other guest extra.
+
+UTM documents image-type, removable-media, interface, and boot-order behavior
+in its [QEMU drive settings](https://docs.getutm.app/settings-qemu/drive/drive/).
+Its [macOS sound settings](https://docs.getutm.app/preferences/macos/#sound)
+document the CoreAudio input limitation.
 
 ## macOS Window Sizing
 

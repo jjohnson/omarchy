@@ -305,15 +305,58 @@ in an optional SPICE guest-integration package or, eventually, a native SPICE
 Wayland backend. XWayland alone does not bridge its X11 selection into the
 native Wayland clipboard. This is not an AArch64 installer blocker.
 
+## Post-Acceptance Microphone and Shell Findings
+
+Phase 9 microphone capture passed after macOS granted UTM microphone access
+and UTM was restarted. PipeWire and WirePlumber exposed the emulated duplex
+audio input to Omarchy, and the record/playback test succeeded. Microphone
+input is therefore working in the installed AArch64 system and does not depend
+on SPICE clipboard or resize guest extras.
+
+The optional `omarchy.microphone` bar widget was enabled through the plugin
+menu (`Super + Space` -> `Setup` -> `Plugins` -> `Enable Plugin` ->
+`Microphone`). Its source shows that a normal click toggles the mute state of
+`Pipewire.defaultAudioSource`, a middle click opens the audio panel, and the
+mouse wheel changes input volume. Phase 9 confirmed that the toggle works: the
+input section is greyed when the audio panel is opened after muting. Both
+surfaces therefore synchronize correctly through the same default source.
+Middle-click means pressing a physical scroll wheel or another mapped middle
+button; it may not be available through a Mac trackpad, and the speaker widget
+can open the same panel normally.
+
+Scrolling the microphone widget changes input volume but shows no desktop OSD.
+This differs from scrolling the speaker widget because the speaker handler
+explicitly summons `omarchy.osd`, while the microphone handler only writes the
+new PipeWire source volume. It is an upstream UI-consistency gap rather than an
+audio or AArch64 failure. The resulting source state can be checked with:
+
+```bash
+wpctl get-volume @DEFAULT_AUDIO_SOURCE@
+```
+
+The inactive `Dictate` indicator exposes a separate confirmed upstream bug
+when Voxtype is not installed. `omarchy-voxtype-status` explicitly handles the
+missing command, but clicking the indicator unconditionally runs
+`omarchy-voxtype-config`, which launches `voxtype configure`. The resulting
+`voxtype: command not found` presentation clears and redraws its terminal and
+then waits for a key in the normal completion wrapper, producing the confusing
+black/focus behavior observed in Phase 9. Installing `Voxtype` through the AI
+menu (`Super + Space` -> `Install` -> `AI` -> `Dictation`) is the intended
+setup path but was deliberately not run during this test. The indicator should
+hide, offer the installer, or otherwise guard its configuration action while
+Voxtype is absent. This issue is unrelated to AArch64 enablement and should
+remain outside the ARM64 core patch series.
+
 ## UTM Media and Host-Integration Decision
 
 The first integrated-image reboot returned to the keyboard picker only because
-the ISO remained attached. UTM locks its VM configuration editor while the VM
-is running, but the running VM window has a drive-image menu for removable
-media. The deterministic install handoff is to eject the ISO there before
-selecting `Reboot`. Putting the target disk before the ISO in the boot order is
-an additional safeguard: blank media falls through to the installer and the
-completed disk becomes the preferred boot target.
+the ISO remained attached. Later removable-media testing showed that a running
+Linux guest can lock a mounted CD/DVD, and this ISO continues to back the live
+ArchISO root. The deterministic UTM handoff is therefore to cleanly power off,
+clear the ISO while the VM is stopped, and then start the installed disk.
+Putting the target disk before the ISO in the boot order remains an additional
+safeguard: blank media falls through to the installer and the completed disk
+becomes the preferred boot target.
 
 The macOS green-button sizing menu controls the UTM window and its placement in
 macOS Spaces. `Full Screen > Entire Screen` provides the intended
@@ -331,7 +374,7 @@ mode, the native Omarchy Display panel, and SSH/`scp`/`rsync` remain the core
 workflow.
 
 The complete boundary, service design, `monitors.lua` ownership, macOS sizing
-behavior, and live ISO-ejection procedure are documented in
+behavior, and safe ISO handoff are documented in
 [`utm-host-integration-2026-07-31.md`](utm-host-integration-2026-07-31.md).
 
 ## Phase 8 Controller Proof
