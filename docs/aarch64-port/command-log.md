@@ -4,6 +4,101 @@ This log records the commands and meaningful results from the first Quattro
 AArch64 desktop milestone. Commands are run as the normal user unless a
 privileged command is explicitly shown.
 
+## 2026-08-15: Quattro release and Phase 10 controller handoff
+
+Archived the superseded upstream reconnaissance before moving active work to
+the fresh Phase 10 controller. The 2026-08-14 read-only comparison had found:
+
+```text
+repository     audit tip    upstream ref       upstream tip  commits/files since base
+omarchy        998ddb78     upstream/quattro   8b70f015      276 / 561
+omarchy-pkgs   6f8b660f     upstream/master    c24302e6      107 / 120
+omarchy-iso    191d576f     upstream/quattro   7d3b01ea       28 / 31
+```
+
+The Omarchy audit branch overlapped that upstream in six paths:
+
+```text
+bin/omarchy-upgrade-to-quattro
+default/hypr/autostart.lua
+install/hardware/all.sh
+install/omarchy-base.packages
+install/user/mise-work.sh
+test/shell.d/upgrade-to-quattro-test.sh
+```
+
+The autostart and base-package overlaps were optional SPICE extras to omit.
+The upgrade command and test combined the legacy-iwd transition with
+fresh-install ARM work and required fresh review rather than replay. The
+remaining retained seams were current hardware orchestration and Node archive
+selection. A three-way merge reported conflicts in the upgrade command, its
+test, and `mise-work.sh`.
+
+The package audit branch overlapped upstream only in
+`pkgbuilds/tobi-try/PKGBUILD`; upstream independently made it architecture
+neutral, so the audit branch's unrelated version change should be omitted.
+The historical `upstream/add-aarch64-support` branch was already merged and
+873 commits behind `upstream/master`.
+
+The ISO audit had eight raw overlaps and four three-way conflict paths:
+
+```text
+README.md
+builder/build-iso.sh
+configs/airootfs/usr/share/omarchy-iso/orchestrator/phases_impl.py
+configs/profiledef.sh
+```
+
+Upstream had added autoinstall, deferred provisioning, factory snapshots,
+`omarchy-apply-system`, and a larger Limine pipeline. The accepted proof
+commits therefore must not be cherry-picked; their architecture and boot seams
+need reconstruction in current orchestration.
+
+Omarchy v4.0.0 was released after that assessment. A 2026-08-15 Phase 8
+preflight recorded:
+
+```text
+Omarchy v4.0.0 tag:             f0020448
+Omarchy upstream/quattro:       b724f761
+omarchy-pkgs upstream/master:   55752759
+omarchy-iso upstream/quattro:   174dd82b
+```
+
+The release tag was an ancestor of `upstream/quattro`, which was also the
+upstream default and contained two post-release fixes. The ISO release changed
+`builder/build-iso.sh`; the package release added no audit-branch overlap. No
+clean branch or worktree was created. These values are historical snapshots;
+the authoritative Step 2 must fetch and recompute all three repositories.
+
+Created `Omarchy-Phase-10-2026-08-15` as a fresh blank-disk installation from
+the accepted integrated ISO, not as a Phase 8 or Phase 9 clone. Its verified
+identity at handoff was:
+
+```text
+user:          dhh
+architecture:  aarch64
+Omarchy build: 4.0.0.r1493.g7b8e2d9
+CPU / memory:  4 / 8 GiB
+disk:          64 GiB, with 2 GiB ESP and 62 GiB LUKS/Btrfs root
+```
+
+The desktop, NetworkManager, SSHD, PipeWire, WirePlumber, Hyprland, and
+Quickshell were active with zero failed system or user units. The active
+workspace moved to `~/Projects` with clean `omarchy`, `omarchy-pkgs`, and
+`omarchy-iso` clones on `quattro-aarch64-utm`. The handoff documents moved to
+the VM's local `~/utm` directory over ordinary SSH; no persistent UTM share is
+required.
+
+The first optional-service test exposed a fresh-install repository defect.
+Pacman configured `core`, `extra`, `alarm`, `aur`, and `omarchy`, but
+`/var/lib/pacman/sync/` contained only `offline.db`.
+`omarchy-install-service-tailscale` consequently could not resolve Tailscale.
+Phase 8 exhibited the related stale-metadata case: its local database selected
+`tailscale 1.98.10-1` after that archive left the mirror, while the live ARM
+repository listed `1.102.2-1`. The product fix must preserve Arch's full-update
+model; a direct package URL or partial `pacman -Sy` is not an acceptable
+remedy.
+
 ## 2026-07-31: UTM media and optional host integration
 
 Recorded the post-acceptance ownership boundary for UTM-specific behavior.
