@@ -12,28 +12,33 @@ package-closure, build, or prior installed-system disk was attached to it.
 
 ## VM Lineage and Preservation
 
-The final integrated-image replay began as the new 4-CPU, 8 GiB, 64 GiB
-blank-disk VM described below, not as a clone of Phase 8 or any
-Armarchy-derived checkpoint. After the clean install, normal boot, snapshot
-boot, and return-to-normal-root tests passed, its accepted state was preserved
-as a separate untouched clone while the working instance continued into
-post-acceptance use.
-
-The UTM inventory is intentionally preserved as:
+Phase 9 used two different new blank-disk VMs, not a source VM and its clone:
 
 ```text
 Quattro-ARM64-Phase-9-Installer-Test-Working-2026-07-30
-  untouched clone of the accepted clean installer-test checkpoint
+  earlier recovered installation; user jj; Omarchy build 2d666b7
 
 Quattro-ARM64-Phase-9-Acceptance-2026-07-30
-  active duplicate used for post-acceptance testing and normal Quattro use
+  clean integrated-image replay; user quattro; Omarchy build 7b8e2d9
 ```
 
-Both Phase 9 VMs therefore have the same clean integrated-ISO lineage. The
-Acceptance VM is not descended from the migrated Armarchy/Phase 8 controller.
-Post-acceptance clipboard, display, microphone, removable-media, and shell UI
-observations belong to the Acceptance VM unless a section explicitly describes
-the earlier recovered installer VM.
+Installer-Test-Working began on a new blank disk and is not descended from
+Phase 8 or Armarchy, but it was installed from the earlier image that stopped
+during finalization. The exact fixes were staged into that installed system and
+the failed phases were resumed, producing the recovered-system proof described
+below. Its package build remained `4.0.0.r1491.g2d666b7`.
+
+Acceptance was the second new 4-CPU, 8 GiB, 64 GiB blank-disk VM. It installed
+the integrated image without repair and produced the clean replay, snapshot,
+and return-to-normal-root proof. It is the active system used for later normal
+Quattro operation and post-acceptance clipboard, display, microphone,
+removable-media, and shell UI observations. No untouched clone of this clean
+Acceptance VM is currently verified in the recorded UTM inventory.
+
+This distinction was confirmed on 2026-08-15 when a proposed Phase 10 clone of
+Installer-Test-Working booted as user `jj` with a different machine identity
+and build `2d666b7`, rather than the Acceptance VM's user `quattro` and build
+`7b8e2d9`. That clone must not be used as the clean integration workstation.
 
 ### Active Acceptance Reverification
 
@@ -64,10 +69,10 @@ systemd-resolved, the display manager, PipeWire, WirePlumber, Hyprland, and the
 single package-owned Quickshell process were active.
 
 This independently verifies that the active Acceptance guest is the clean
-Phase 9 installation, not the Armarchy-derived controller. The UTM bundle name
-and the untouched status of the stopped Installer-Test-Working clone remain
-host-observed inventory because a guest cannot report its enclosing UTM bundle
-name.
+Phase 9 installation, not the Armarchy-derived controller or the earlier
+recovered Installer-Test-Working VM. A guest cannot report its enclosing UTM
+bundle name, but the later Phase 10 clone check independently distinguished the
+two recorded disks by user, machine identity, and installed source level.
 
 After the audit, the exact temporary controller key was removed, its now-empty
 `.ssh` directory was removed, the temporary key server was stopped, SSH was
@@ -317,9 +322,8 @@ Its checksum sidecar is:
 
 ## Clean Integrated-Image Replay
 
-The clean state later preserved in
-`Quattro-ARM64-Phase-9-Installer-Test-Working-2026-07-30` was produced by a
-second new UTM VM using the integrated ISO with:
+`Quattro-ARM64-Phase-9-Acceptance-2026-07-30` was the second new UTM VM and
+used the integrated ISO with:
 
 ```text
 CPU:                    4
