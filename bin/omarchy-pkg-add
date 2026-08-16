@@ -6,6 +6,16 @@
 # omarchy:requires-sudo=true
 
 if omarchy-pkg-missing "$@"; then
+  if ! omarchy-pkg-repositories-ready; then
+    echo -e "\nInitializing package repositories with a full system update..."
+    omarchy-update-system-pkgs || exit 1
+
+    if ! omarchy-pkg-repositories-ready; then
+      echo "Error: package repositories remain unavailable after the system update" >&2
+      exit 1
+    fi
+  fi
+
   if (( EUID == 0 )); then
     pacman -S --noconfirm --needed "$@" || exit 1
   else

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# omarchy:summary=Returns true when every configured Pacman repository has a local database
+# omarchy:hidden=true
+
+set -euo pipefail
+
+sync_dir="${OMARCHY_PACMAN_SYNC_DIR:-/var/lib/pacman/sync}"
+mapfile -t repositories < <(pacman-conf --repo-list 2>/dev/null)
+
+(( ${#repositories[@]} > 0 )) || exit 1
+
+for repository in "${repositories[@]}"; do
+  [[ -s $sync_dir/$repository.db ]] || exit 1
+done
