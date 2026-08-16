@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# omarchy:summary=Rebuild the AArch64 initramfs and native Limine entry
+# omarchy:group=update
+# omarchy:hidden=true
+# omarchy:requires-sudo=true
+
+set -euo pipefail
+
+system_root="${OMARCHY_SYSTEM_ROOT:-}"
+architecture="${OMARCHY_ARCHITECTURE:-$(uname -m)}"
+mkinitcpio_command="${OMARCHY_MKINITCPIO_COMMAND:-/usr/bin/mkinitcpio}"
+limine_entry_tool_command="${OMARCHY_LIMINE_ENTRY_TOOL_COMMAND:-/usr/bin/limine-entry-tool}"
+
+if (( EUID != 0 )) && [[ -z $system_root ]]; then
+  echo "Error: omarchy-update-kernel-aarch64 must run as root" >&2
+  exit 1
+fi
+
+if [[ $architecture != "aarch64" && $architecture != "arm64" ]]; then
+  echo "Error: omarchy-update-kernel-aarch64 only supports AArch64 systems" >&2
+  exit 1
+fi
+
+preset="$system_root/etc/mkinitcpio.d/linux-aarch64.preset"
+kernel="$system_root/boot/Image"
+initramfs="$system_root/boot/initramfs-linux.img"
+kernel_cmdline="$system_root/etc/kernel/cmdline"
+limine_conf="$system_root/boot/limine.conf"
+
+[[ -f $preset ]] || {
+  echo "Error: $preset is missing" >&2
+  exit 1
+}
+[[ -s $kernel ]] || {
+  echo "Error: $kernel is missing or empty" >&2
+  exit 1
+}
+[[ -s $kernel_cmdline ]] || {
+  echo "Error: $kernel_cmdline is missing or empty" >&2
+  exit 1
+}
+
+"$mkinitcpio_command" -p linux-aarch64
+
+[[ -s $initramfs ]] || {
+  echo "Error: $initramfs was not generated" >&2
+  exit 1
+}
+
+"$limine_entry_tool_command" \
+  --add-kernel linux-aarch64 "$initramfs" "$kernel" \
+  --comment linux-aarch64 \
+  --no-hooks
+
+[[ -s $limine_conf ]] || {
+  echo "Error: $limine_conf was not generated" >&2
+  exit 1
+}
+grep -Eq '^[[:space:]]*protocol:[[:space:]]+linux$' "$limine_conf" || {
+  echo "Error: $limine_conf has no AArch64 Linux entry" >&2
+  exit 1
+}
+grep -Eq '^[[:space:]]*(kernel_path|path):[[:space:]]+' "$limine_conf" || {
+  echo "Error: $limine_conf has no kernel path" >&2
+  exit 1
+}
+grep -Eq '^[[:space:]]*module_path:[[:space:]]+' "$limine_conf" || {
+  echo "Error: $limine_conf has no initramfs path" >&2
+  exit 1
+}
+grep -Eq '^[[:space:]]*(kernel_cmdline|cmdline):[[:space:]].*root=' "$limine_conf" || {
+  echo "Error: $limine_conf has no root kernel command line" >&2
+  exit 1
+}
+
+if grep -q 'cryptdevice=' "$kernel_cmdline" && ! grep -q 'cryptdevice=' "$limine_conf"; then
+  echo "Error: $limine_conf is missing the encrypted-root kernel command line" >&2
+  exit 1
+fi
