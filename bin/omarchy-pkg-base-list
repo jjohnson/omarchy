@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# omarchy:summary=List default packages for the current architecture
+# omarchy:args=[architecture] [manifest]
+# omarchy:hidden=true
+
+set -euo pipefail
+
+architecture="${1:-$(uname -m)}"
+manifest="${2:-$OMARCHY_PATH/install/omarchy-base.packages}"
+
+while IFS= read -r package; do
+  if [[ ($architecture == "aarch64" || $architecture == "arm64") && $package == "qemu-user-static-binfmt" ]]; then
+    package=qemu-user-binfmt
+  fi
+
+  printf '%s\n' "$package"
+done < <(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$manifest")
